@@ -982,7 +982,7 @@ async function generateRecipes(){
     const prompt = `Available ingredients: ${APP.ingredients.join(', ')}.
 Dietary preference: ${dietLabel}.
 
-Suggest 4 distinct recipe options that primarily use these ingredients (a few common pantry staples like oil, salt, water, spices may be assumed available). Respect the dietary preference strictly. For each recipe include precise ingredient quantities (assume it serves 2 unless noted) and clear numbered preparation steps.
+Suggest 3 distinct recipe options that primarily use these ingredients (a few common pantry staples like oil, salt, water, spices may be assumed available). Respect the dietary preference strictly. For each recipe include precise ingredient quantities (assume it serves 2 unless noted) and clear numbered preparation steps.
 
 Respond with ONLY valid JSON in exactly this shape, no markdown fences, no commentary:
 {
@@ -1005,7 +1005,7 @@ Respond with ONLY valid JSON in exactly this shape, no markdown fences, no comme
 
     const text = await callAI({
       model: MODEL_TEXT,
-      maxTokens: 4000,
+      maxTokens: 8000,
       jsonMode: true,
       system: 'You are an expert chef and recipe developer who writes precise, home-cook-friendly recipes. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
       messages: [{ role: 'user', content: prompt }]
