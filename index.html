@@ -926,7 +926,7 @@ $('#dietGrid').addEventListener('click', (e) => {
    AI HELPERS — calls our own /api/chat serverless function,
    which forwards to Groq with the API key kept server-side.
    ============================================================ */
-const MODEL_TEXT = 'openai/gpt-oss-120b';   // recipe writing (text-only)
+const MODEL_TEXT = 'openai/gpt-oss-20b';    // recipe writing (text-only) — higher free-tier TPM than the 120b model
 const MODEL_VISION = 'qwen/qwen3.6-27b';    // ingredient photo detection (vision + JSON mode)
 
 async function callAI({ system, messages, maxTokens = 2000, model = MODEL_TEXT, jsonMode = true }){
@@ -958,6 +958,8 @@ function handleApiError(err){
   const msg = err && err.message || String(err);
   if(msg.startsWith('API_ERROR:500') && msg.toLowerCase().includes('groq_api_key')){
     showToast('Server is missing GROQ_API_KEY — add it in Vercel project settings.', true);
+  } else if(msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('request too large') || msg.toLowerCase().includes('tokens per minute')){
+    showToast('Groq free-tier limit hit for this request. Wait a minute and try again, or use fewer ingredients.', true);
   } else if(msg.startsWith('API_ERROR:')){
     showToast('AI request failed — ' + msg.split(':').slice(2).join(':').trim(), true);
   } else if(err instanceof SyntaxError){
@@ -1005,7 +1007,7 @@ Respond with ONLY valid JSON in exactly this shape, no markdown fences, no comme
 
     const text = await callAI({
       model: MODEL_TEXT,
-      maxTokens: 8000,
+      maxTokens: 4000,
       jsonMode: true,
       system: 'You are an expert chef and recipe developer who writes precise, home-cook-friendly recipes. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
       messages: [{ role: 'user', content: prompt }]
