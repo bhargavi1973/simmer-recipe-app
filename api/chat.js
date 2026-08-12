@@ -1,8 +1,3 @@
-// /api/chat.js
-// Vercel serverless function — proxies chat requests to Groq's OpenAI-compatible API.
-// The Groq API key lives only here, as a server-side environment variable
-// (set GROQ_API_KEY in your Vercel project settings), never in the browser.
-
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed. Use POST.' });
@@ -36,6 +31,11 @@ module.exports = async function handler(req, res) {
     };
     if (jsonMode) {
       payload.response_format = { type: 'json_object' };
+    }
+    // gpt-oss models spend tokens on internal reasoning before writing the
+    // final answer; keep that light so the JSON output doesn't get truncated.
+    if (model.startsWith('openai/gpt-oss')) {
+      payload.reasoning_effort = 'low';
     }
 
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
