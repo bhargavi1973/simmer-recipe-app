@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simmer — AI Recipe Generator</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍲</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF6EC;
+    --paper-2:#F3EAD6;
+    --paper-3:#EDE1C6;
+    --ink:#2B2118;
+    --ink-soft:#6B5D48;
+    --ink-faint:#9C8C72;
+    --basil:#33502C;
+    --basil-dark:#233A1F;
+    --basil-light:#5C7A52;
+    --saffron:#DE9F1F;
+    --saffron-dark:#B87F14;
+    --tomato:#C1451E;
+    --line:#DDCEA9;
+    --card-shadow: 0 1px 2px rgba(43,33,24,0.06), 0 8px 24px -8px rgba(43,33,24,0.15);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(43,33,24,0.05) 1px, transparent 0);
+    background-size: 22px 22px;
+  }
+  h1,h2,h3,.display{ font-family:'Fraunces',serif; letter-spacing:-0.01em; }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  a{ color:inherit; }
+  button{ font-family:inherit; cursor:pointer; }
+  ::selection{ background:var(--saffron); color:var(--ink); }
+  .hidden{ display:none !important; }
+
+  /* ---------- scrollbar ---------- */
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{ background:var(--paper-3); border-radius:8px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+
+  /* ================= LOGIN ================= */
+  #loginScreen{
+    min-height:100vh;
+    display:grid;
+    grid-template-columns: 1.05fr 1fr;
+  }
+  @media (max-width: 860px){
+    #loginScreen{ grid-template-columns: 1fr; }
+    .login-art{ min-height:220px; }
+  }
+  .login-art{
+    background:
+      radial-gradient(120% 140% at 15% 10%, rgba(222,159,31,0.30), transparent 55%),
+      radial-gradient(120% 140% at 90% 90%, rgba(193,69,30,0.22), transparent 55%),
+      linear-gradient(160deg, var(--basil-dark), var(--basil) 60%, #3c5a32);
+    color:#F4EEDC;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:48px 44px;
+    position:relative;
+    overflow:hidden;
+  }
+  .login-art::after{
+    content:"";
+    position:absolute; inset:0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.10) 1px, transparent 1.4px);
+    background-size: 26px 26px;
+    opacity:.5;
+  }
+  .brandmark{ display:flex; align-items:center; gap:12px; position:relative; z-index:1; }
+  .brandmark .glyph{
+    width:40px; height:40px; border-radius:10px;
+    background:rgba(244,238,220,0.12);
+    border:1px solid rgba(244,238,220,0.35);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px;
+  }
+  .brandmark .name{ font-family:'Fraunces',serif; font-size:22px; font-weight:600; letter-spacing:0.01em; }
+  .login-art .pitch{ position:relative; z-index:1; max-width:460px; }
+  .login-art .pitch .eyebrow{
+    text-transform:uppercase; letter-spacing:0.16em; font-size:12px; font-weight:600;
+    color:#E9C874; margin-bottom:18px; display:block;
+  }
+  .login-art .pitch h1{
+    font-size:clamp(34px,4.4vw,52px); line-height:1.05; font-weight:600; margin:0 0 18px;
+  }
+  .login-art .pitch h1 em{ font-style:italic; color:#E9C874; }
+  .login-art .pitch p{ font-size:16px; line-height:1.6; color:rgba(244,238,220,0.85); margin:0; }
+  .steam-row{ display:flex; gap:10px; margin-top:34px; position:relative; z-index:1; flex-wrap:wrap;}
+  .steam-chip{
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:7px 12px;
+    border:1px solid rgba(244,238,220,0.35); border-radius:999px; color:#F4EEDC;
+    background:rgba(244,238,220,0.06);
+  }
+  .login-art .foot{ position:relative; z-index:1; font-size:12.5px; color:rgba(244,238,220,0.6); }
+
+  .login-form-wrap{
+    display:flex; align-items:center; justify-content:center;
+    padding:40px 28px;
+  }
+  .login-card{ width:100%; max-width:400px; }
+  .login-card .tabs{
+    display:flex; gap:4px; background:var(--paper-2); padding:4px; border-radius:12px; margin-bottom:28px;
+  }
+  .login-card .tabs button{
+    flex:1; border:none; background:transparent; padding:10px 0; border-radius:9px;
+    font-weight:600; font-size:14px; color:var(--ink-soft); transition:.15s;
+  }
+  .login-card .tabs button.active{ background:var(--paper); color:var(--ink); box-shadow:var(--card-shadow); }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em; }
+  .field input{
+    width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid var(--line);
+    background:var(--paper); color:var(--ink); font-size:14.5px; font-family:'Inter',sans-serif;
+    transition:.15s;
+  }
+  .field input:focus{ outline:none; border-color:var(--basil); box-shadow:0 0 0 3px rgba(51,80,44,0.12); }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:12px 18px; border-radius:10px; border:none; font-weight:700; font-size:14.5px;
+    transition:.15s; letter-spacing:0.01em;
+  }
+  .btn-primary{ background:var(--basil); color:#F4EEDC; width:100%; }
+  .btn-primary:hover{ background:var(--basil-dark); }
+  .btn-primary:disabled{ opacity:.55; cursor:not-allowed; }
+  .btn-ghost{ background:transparent; color:var(--ink-soft); border:1.5px solid var(--line); }
+  .btn-ghost:hover{ border-color:var(--ink-soft); color:var(--ink); }
+  .btn-outline{ background:var(--paper); color:var(--basil); border:1.5px solid var(--basil); }
+  .btn-outline:hover{ background:var(--basil); color:#F4EEDC; }
+  .btn-sm{ padding:8px 12px; font-size:13px; border-radius:8px; }
+  .form-note{ font-size:12.5px; color:var(--ink-faint); margin-top:14px; line-height:1.5; }
+  .form-error{
+    background:#FBEAE3; border:1px solid #E7B7A2; color:var(--tomato); font-size:13px;
+    padding:10px 12px; border-radius:9px; margin-bottom:14px; display:none;
+  }
+  .form-error.show{ display:block; }
+
+  /* ================= APP SHELL ================= */
+  #appScreen{ min-height:100vh; }
+  header.topbar{
+    position:sticky; top:0; z-index:40;
+    background:rgba(251,246,236,0.9); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 28px;
+  }
+  header.topbar .brandmark .name{ color:var(--ink); font-size:19px; }
+  header.topbar .brandmark .glyph{ background:var(--basil); color:#F4EEDC; border-color:var(--basil); }
+  .topbar-right{ display:flex; align-items:center; gap:10px; }
+  .user-pill{
+    display:flex; align-items:center; gap:8px; padding:6px 6px 6px 12px; border-radius:999px;
+    background:var(--paper-2); border:1px solid var(--line); font-size:13.5px; font-weight:600;
+  }
+  .user-pill .avatar{
+    width:26px; height:26px; border-radius:50%; background:var(--saffron); color:var(--basil-dark);
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px;
+  }
+  .icon-btn{
+    width:34px; height:34px; border-radius:9px; border:1px solid var(--line); background:var(--paper);
+    display:flex; align-items:center; justify-content:center; color:var(--ink-soft);
+  }
+  .icon-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
+
+  main.container{
+    max-width:1200px; margin:0 auto; padding:34px 28px 90px;
+    display:grid; grid-template-columns: 380px 1fr; gap:28px; align-items:start;
+  }
+  @media (max-width: 980px){
+    main.container{ grid-template-columns:1fr; }
+  }
+
+  .panel{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--card-shadow); padding:22px;
+  }
+  .panel + .panel{ margin-top:22px; }
+  .panel h2{ font-size:19px; margin:0 0 4px; }
+  .panel .sub{ font-size:13px; color:var(--ink-soft); margin:0 0 18px; }
+
+  .input-tabs{ display:flex; gap:6px; margin-bottom:18px; }
+  .input-tabs button{
+    flex:1; padding:9px 4px; border-radius:9px; border:1.5px solid var(--line); background:var(--paper);
+    font-size:12.5px; font-weight:700; color:var(--ink-soft); display:flex; flex-direction:column; align-items:center; gap:4px;
+  }
+  .input-tabs button svg{ width:17px; height:17px; }
+  .input-tabs button.active{ background:var(--basil); border-color:var(--basil); color:#F4EEDC; }
+
+  .tabpane{ display:none; }
+  .tabpane.active{ display:block; }
+
+  .dropzone{
+    border:1.5px dashed var(--line); border-radius:12px; padding:22px; text-align:center;
+    background:var(--paper-2); cursor:pointer; transition:.15s;
+  }
+  .dropzone:hover, .dropzone.drag{ border-color:var(--basil); background:#EFEAD5; }
+  .dropzone svg{ width:26px; height:26px; color:var(--basil); margin-bottom:8px; }
+  .dropzone p{ margin:0; font-size:13px; color:var(--ink-soft); }
+  .dropzone p.strong{ font-weight:700; color:var(--ink); margin-bottom:2px; }
+  #imgPreviewWrap{ margin-top:14px; }
+  #imgPreviewWrap img{ width:100%; border-radius:10px; border:1px solid var(--line); max-height:180px; object-fit:cover; }
+  .detect-row{ display:flex; gap:8px; margin-top:12px; }
+
+  .mic-zone{ text-align:center; padding:10px 6px 4px; }
+  .mic-btn{
+    width:74px; height:74px; border-radius:50%; border:none; background:var(--basil); color:#F4EEDC;
+    display:flex; align-items:center; justify-content:center; margin:6px auto 14px; position:relative;
+    box-shadow:0 6px 18px -6px rgba(51,80,44,0.5);
+  }
+  .mic-btn svg{ width:28px; height:28px; }
+  .mic-btn.listening{ background:var(--tomato); }
+  .mic-btn.listening::before{
+    content:""; position:absolute; inset:-8px; border-radius:50%; border:2px solid var(--tomato);
+    animation:pulse 1.4s ease-out infinite;
+  }
+  @keyframes pulse{ 0%{ transform:scale(0.85); opacity:.8;} 100%{ transform:scale(1.35); opacity:0; } }
+  .mic-status{ font-size:12.5px; color:var(--ink-soft); min-height:18px; margin-bottom:10px; }
+  .transcript-box{
+    text-align:left; background:var(--paper-2); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; font-size:13.5px; min-height:52px; color:var(--ink); margin-bottom:10px;
+  }
+  .transcript-box:empty::before{ content:"Your words will appear here…"; color:var(--ink-faint); }
+  .voice-unsupported{
+    font-size:12.5px; color:var(--tomato); background:#FBEAE3; border:1px solid #E7B7A2;
+    padding:9px 11px; border-radius:9px; display:none;
+  }
+
+  .type-row{ display:flex; gap:8px; }
+  .type-row input{ flex:1; }
+
+  .chip-field{ margin-top:18px; }
+  .chip-field .label-row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .chip-field .label-row span.k{ font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); }
+  .chip-field .label-row button{ background:none; border:none; font-size:12px; color:var(--tomato); font-weight:600; }
+  .chips{ display:flex; flex-wrap:wrap; gap:7px; min-height:34px; }
+  .chip{
+    display:flex; align-items:center; gap:6px; background:var(--paper-2); border:1px solid var(--line);
+    padding:6px 6px 6px 12px; border-radius:999px; font-size:13px; font-weight:600; color:var(--ink);
+  }
+  .chip button{ background:var(--paper-3); border:none; width:18px; height:18px; border-radius:50%; color:var(--ink-soft); font-size:12px; line-height:1; }
+  .chip button:hover{ background:var(--tomato); color:#fff; }
+  .chip.empty-hint{ color:var(--ink-faint); font-weight:400; background:transparent; border-style:dashed; }
+
+  .diet-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+  .diet-opt{
+    padding:8px 14px; border-radius:999px; border:1.5px solid var(--line); background:var(--paper);
+    font-size:13px; font-weight:700; color:var(--ink-soft);
+  }
+  .diet-opt.active{ background:var(--saffron); border-color:var(--saffron-dark); color:var(--basil-dark); }
+
+  .generate-btn{ width:100%; padding:15px; font-size:15px; border-radius:12px; }
+  .generate-btn svg{ width:18px; height:18px; }
+
+  /* results */
+  .results-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+  .results-tabs{ display:flex; align-items:baseline; gap:14px; }
+  .rtab{ background:none; border:none; padding:0; font-family:'Fraunces',serif; font-size:22px; font-weight:600; color:var(--ink-faint); cursor:pointer; }
+  .rtab.active{ color:var(--ink); }
+  .rtab span{ font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; }
+  .results-head-right{ display:flex; align-items:center; gap:10px; }
+  .results-head .count{ font-size:13px; color:var(--ink-soft); }
+  .recipe-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:18px; }
+  .recipe-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:18px;
+    box-shadow:var(--card-shadow); cursor:pointer; transition:.15s; display:flex; flex-direction:column; gap:10px;
+    position:relative;
+  }
+  .recipe-card:hover{ transform:translateY(-2px); border-color:var(--basil); }
+  .recipe-card .tag-row{ display:flex; gap:6px; flex-wrap:wrap; padding-right:38px; }
+  .tagpill{ font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; padding:4px 9px; border-radius:999px; }
+  .tagpill.veg{ background:#E4EEDD; color:var(--basil-dark); }
+  .tagpill.nonveg{ background:#FBE4DA; color:var(--tomato); }
+  .tagpill.cuisine{ background:var(--paper-2); color:var(--ink-soft); }
+  .recipe-card h3{ font-size:19px; margin:0; line-height:1.2; }
+  .recipe-card p.desc{ font-size:13.5px; color:var(--ink-soft); margin:0; line-height:1.5; flex:1; }
+  .recipe-card .meta-row{ display:flex; gap:14px; row-gap:6px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; }
+  .recipe-card .meta-row span{ display:flex; align-items:center; gap:4px; }
+  .recipe-card .meta-row svg{ width:13px; height:13px; }
+  .heart-btn{
+    position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:50%;
+    border:1px solid var(--line); background:var(--paper); color:var(--tomato); font-size:15px;
+    display:flex; align-items:center; justify-content:center; line-height:1; z-index:2;
+  }
+  .heart-btn.active{ background:var(--tomato); color:#fff; border-color:var(--tomato); }
+  .regen-btn{
+    align-self:flex-start; background:none; border:none; color:var(--basil); font-size:12.5px;
+    font-weight:700; padding:0; margin-top:-2px;
+  }
+  .regen-btn:hover{ text-decoration:underline; }
+  .card-loading{ padding:26px 10px 6px; text-align:center; }
+  .recipe-card.regenerating{ pointer-events:none; }
+
+  .empty-state, .placeholder-state{
+    border:1.5px dashed var(--line); border-radius:14px; padding:60px 24px; text-align:center; color:var(--ink-soft);
+  }
+  .empty-state .emoji, .placeholder-state .emoji{ font-size:36px; margin-bottom:10px; }
+  .empty-state h3, .placeholder-state h3{ font-size:17px; margin:0 0 6px; color:var(--ink); }
+  .empty-state p, .placeholder-state p{ font-size:13.5px; margin:0; max-width:360px; margin:0 auto; }
+
+  .loading-state{ text-align:center; padding:60px 24px; }
+  .loading-state .spinner{
+    width:38px; height:38px; border-radius:50%; border:3px solid var(--paper-3); border-top-color:var(--basil);
+    margin:0 auto 16px; animation:spin 0.85s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .loading-state p{ font-size:13.5px; color:var(--ink-soft); }
+
+  /* history list */
+  .history-item{ display:flex; justify-content:space-between; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--line); }
+  .history-item:last-child{ border-bottom:none; }
+  .history-date{ font-size:11.5px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; margin-bottom:4px; }
+  .history-ing{ font-size:13.5px; font-weight:600; color:var(--ink); margin-bottom:2px; line-height:1.4; }
+  .history-diet{ font-size:12px; color:var(--ink-soft); text-transform:capitalize; }
+
+  /* servings stepper (inside recipe modal) */
+  .servings-stepper{
+    display:inline-flex; align-items:center; gap:9px; background:rgba(244,238,220,0.12);
+    border:1px solid rgba(244,238,220,0.3); border-radius:999px; padding:3px 8px; margin-left:6px; vertical-align:middle;
+  }
+  .servings-stepper button{
+    width:20px; height:20px; border-radius:50%; border:none; background:rgba(244,238,220,0.2);
+    color:#F4EEDC; font-weight:800; font-size:13px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .servings-stepper span{ min-width:12px; text-align:center; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:13px; }
+
+  /* nutrition pills */
+  .nutrition-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+  .nutrition-pill{ background:var(--paper-2); border:1px solid var(--line); border-radius:10px; padding:8px 12px; text-align:center; min-width:58px; }
+  .nutrition-pill .val{ display:block; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:13.5px; color:var(--ink); }
+  .nutrition-pill .lbl{ font-size:9.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.05em; }
+
+  .modal-heart{
+    position:absolute; top:16px; right:58px; width:32px; height:32px; border-radius:9px;
+    background:rgba(244,238,220,0.14); border:1px solid rgba(244,238,220,0.3); color:#F4EEDC; font-size:15px;
+  }
+  .modal-heart.active{ background:var(--tomato); border-color:var(--tomato); color:#fff; }
+
+  /* modal */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(43,33,24,0.55); backdrop-filter:blur(2px);
+    display:flex; align-items:flex-start; justify-content:center; padding:40px 18px; overflow-y:auto; z-index:100;
+  }
+  .modal{
+    background:var(--paper); width:100%; max-width:760px; border-radius:18px; overflow:hidden;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.4); animation:pop .18s ease;
+  }
+  @keyframes pop{ from{ opacity:0; transform:translateY(10px) scale(.98);} to{ opacity:1; transform:none; } }
+  .modal-head{
+    background:linear-gradient(140deg, var(--basil-dark), var(--basil));
+    color:#F4EEDC; padding:26px 28px 22px; position:relative;
+  }
+  .modal-head .close-x{
+    position:absolute; top:16px; right:16px; width:32px; height:32px; border-radius:9px;
+    background:rgba(244,238,220,0.14); border:1px solid rgba(244,238,220,0.3); color:#F4EEDC;
+  }
+  .modal-head .tag-row{ margin-bottom:10px; }
+  .modal-head .tag-row .tagpill.veg{ background:rgba(228,238,221,0.9); }
+  .modal-head .tag-row .tagpill.nonveg{ background:rgba(251,228,218,0.9); }
+  .modal-head .tag-row .tagpill.cuisine{ background:rgba(244,238,220,0.18); color:#F4EEDC; }
+  .modal-head h2{ font-size:27px; margin:0 0 8px; max-width:520px; }
+  .modal-head p{ margin:0; font-size:13.5px; color:rgba(244,238,220,0.85); max-width:540px; line-height:1.5; }
+  .modal-head .meta-row{ margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:rgba(244,238,220,0.85); }
+  .modal-head .meta-row span{ display:flex; align-items:center; gap:5px; }
+  .modal-head .meta-row svg{ width:13px; height:13px; }
+
+  .modal-body{ padding:26px 28px 30px; display:grid; grid-template-columns:1fr 1.15fr; gap:26px; }
+  @media (max-width:640px){ .modal-body{ grid-template-columns:1fr; } }
+  .modal-body h4{ font-size:12.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); margin:0 0 12px; }
+
+  /* receipt */
+  .receipt{
+    background:#FFFDF7; border:1px solid var(--line);
+    font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--ink);
+    padding:18px 18px 14px; position:relative;
+    clip-path: polygon(0% 0%,100% 0%,100% 98%,96% 100%,92% 98%,88% 100%,84% 98%,80% 100%,76% 98%,72% 100%,68% 98%,64% 100%,60% 98%,56% 100%,52% 98%,48% 100%,44% 98%,40% 100%,36% 98%,32% 100%,28% 98%,24% 100%,20% 98%,16% 100%,12% 98%,8% 100%,4% 98%,0% 100%);
+    box-shadow:0 6px 16px -8px rgba(43,33,24,0.3);
+  }
+  .receipt .r-title{ text-align:center; font-weight:700; letter-spacing:0.08em; margin-bottom:2px; text-transform:uppercase;}
+  .receipt .r-sub{ text-align:center; font-size:11px; color:var(--ink-faint); margin-bottom:10px; }
+  .receipt .r-divider{ border-top:1px dashed var(--ink-faint); margin:10px 0; }
+  .receipt .r-item{ display:flex; justify-content:space-between; gap:10px; padding:3px 0; font-size:12.5px; }
+  .receipt .r-item .qty{ color:var(--ink-soft); white-space:nowrap; }
+  .receipt .r-foot{ text-align:center; font-size:10.5px; color:var(--ink-faint); margin-top:10px; }
+
+  .steps-list{ margin:0; padding:0; list-style:none; counter-reset:step; }
+  .steps-list li{
+    counter-increment:step; display:flex; gap:12px; margin-bottom:14px; font-size:13.5px; line-height:1.55;
+  }
+  .steps-list li::before{
+    content: counter(step); flex:none; width:24px; height:24px; border-radius:50%; background:var(--saffron);
+    color:var(--basil-dark); font-weight:800; font-size:12px; display:flex; align-items:center; justify-content:center;
+  }
+  .modal-actions{ display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+
+  /* toast */
+  #toast{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0;
+    background:var(--ink); color:var(--paper); padding:12px 18px; border-radius:10px; font-size:13.5px;
+    box-shadow:0 10px 26px rgba(0,0,0,0.25); z-index:200; transition:.2s; pointer-events:none; max-width:90vw;
+  }
+  #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  #toast.error{ background:var(--tomato); }
+
+  /* api key modal */
+  .keymodal .modal-body-simple{ padding:22px 26px 26px; }
+  .keymodal .modal-head{ padding:22px 26px 18px; }
+  .keymodal .modal-head h2{ font-size:21px; }
+  .keymodal .modal-head p{ font-size:13px; }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="loginScreen">
+  <div class="login-art">
+    <div class="brandmark">
+      <div class="glyph">🍲</div>
+      <div class="name">Simmer</div>
+    </div>
+    <div class="pitch">
+      <span class="eyebrow">AI Recipe Generator</span>
+      <h1>Cook something great with <em>what's already in your kitchen.</em></h1>
+      <p>Snap a photo of your ingredients, say them out loud, or type them in. Simmer turns whatever you've got into real recipes — with steps, quantities and a shopping list ready to download.</p>
+    </div>
+  </div>
+
+  <div class="login-form-wrap">
+    <div class="login-card">
+      <div class="tabs">
+        <button id="tabLoginBtn" class="active" onclick="setAuthTab('login')">Sign In</button>
+        <button id="tabSignupBtn" onclick="setAuthTab('signup')">Create Account</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="loginForm" onsubmit="return handleLogin(event)">
+        <div class="form-error" id="loginError"></div>
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" placeholder="you@example.com" required autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button class="btn btn-primary" type="submit">Sign In</button>
+      </form>
+
+      <!-- SIGNUP FORM -->
+      <form id="signupForm" class="hidden" onsubmit="return handleSignup(event)">
+        <div class="form-error" id="signupError"></div>
+        <div class="field">
+          <label for="signupName">Full name</label>
+          <input id="signupName" type="text" placeholder="Alex Rivera" required autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="signupEmail">Email</label>
+          <input id="signupEmail" type="email" placeholder="you@example.com" required autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="signupPassword">Password</label>
+          <input id="signupPassword" type="password" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password">
+        </div>
+        <button class="btn btn-primary" type="submit">Create Account</button>
+        <p class="form-note">By continuing you agree this is a demo login system for the app UI, not a secure production account system.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP SCREEN ============ -->
+<div id="appScreen" class="hidden">
+  <header class="topbar">
+    <div class="brandmark">
+      <div class="glyph">🍲</div>
+      <div class="name">Simmer</div>
+    </div>
+    <div class="topbar-right">
+      <div class="user-pill">
+        <div class="avatar" id="userAvatar">?</div>
+        <span id="userNameLabel">User</span>
+      </div>
+      <button class="icon-btn" title="Log out" onclick="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- LEFT: ingredient hub -->
+    <div>
+      <div class="panel">
+        <h2>Your ingredients</h2>
+        <p class="sub">Add ingredients by photo, voice, or typing — mix all three.</p>
+
+        <div class="input-tabs">
+          <button class="active" data-tab="photo" onclick="setInputTab('photo')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Photo
+          </button>
+          <button data-tab="voice" onclick="setInputTab('voice')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+            Voice
+          </button>
+          <button data-tab="type" onclick="setInputTab('type')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+            Type
+          </button>
+        </div>
+
+        <!-- PHOTO TAB -->
+        <div class="tabpane active" id="pane-photo">
+          <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p class="strong">Upload a photo of your ingredients</p>
+            <p>Click to browse, or drag an image here</p>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+          <div id="imgPreviewWrap" class="hidden">
+            <img id="imgPreview" alt="Uploaded ingredients preview">
+            <div class="detect-row">
+              <button class="btn btn-primary btn-sm" style="flex:1" id="detectBtn" onclick="detectIngredientsFromImage()">Detect ingredients</button>
+              <button class="btn btn-ghost btn-sm" onclick="clearImage()">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VOICE TAB -->
+        <div class="tabpane" id="pane-voice">
+          <div class="voice-unsupported" id="voiceUnsupported">Your browser doesn't support speech recognition. Try Chrome or Edge, or use the Type tab instead.</div>
+          <div class="mic-zone">
+            <button class="mic-btn" id="micBtn" onclick="toggleListening()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+            </button>
+            <div class="mic-status" id="micStatus">Tap the mic and list your ingredients</div>
+            <div class="transcript-box" id="transcriptBox"></div>
+            <button class="btn btn-outline btn-sm" style="width:100%" onclick="addTranscriptAsIngredients()">Add to ingredients</button>
+          </div>
+        </div>
+
+        <!-- TYPE TAB -->
+        <div class="tabpane" id="pane-type">
+          <div class="type-row">
+            <input type="text" id="typeInput" placeholder="e.g. tomato, then press Enter" onkeydown="handleTypeKeydown(event)">
+            <button class="btn btn-primary btn-sm" onclick="addFromTypeInput()">Add</button>
+          </div>
+          <p class="form-note" style="margin-top:10px;">Press Enter or comma to add each ingredient as a tag.</p>
+        </div>
+
+        <div class="chip-field">
+          <div class="label-row">
+            <span class="k">Ingredient list (<span id="ingredientCount">0</span>)</span>
+            <button onclick="clearAllIngredients()">Clear all</button>
+          </div>
+          <div class="chips" id="chipsContainer">
+            <span class="chip empty-hint">No ingredients yet — add some above</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Dietary preference</h2>
+        <p class="sub">Recipes will be tailored to this choice.</p>
+        <div class="diet-grid" id="dietGrid">
+          <button class="diet-opt active" data-diet="any">Any</button>
+          <button class="diet-opt" data-diet="vegetarian">Vegetarian</button>
+          <button class="diet-opt" data-diet="vegan">Vegan</button>
+          <button class="diet-opt" data-diet="non-vegetarian">Non-Veg</button>
+          <button class="diet-opt" data-diet="eggetarian">Eggetarian</button>
+          <button class="diet-opt" data-diet="keto">Keto</button>
+          <button class="diet-opt" data-diet="gluten-free">Gluten-Free</button>
+        </div>
+        <button class="btn btn-primary generate-btn" id="generateBtn" onclick="generateRecipes()" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.6-6.3 4.6 2.3-7.2-6-4.6h7.6z"/></svg>
+          Generate recipes
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: results -->
+    <div>
+      <div class="results-head">
+        <div class="results-tabs">
+          <button class="rtab active" id="tabGenerated" onclick="setResultsView('generated')">Recipe ideas</button>
+          <button class="rtab" id="tabSaved" onclick="setResultsView('saved')">Saved <span id="savedCountLabel">(0)</span></button>
+        </div>
+        <div class="results-head-right">
+          <button class="btn btn-ghost btn-sm" onclick="openHistoryModal()">History</button>
+          <span class="count" id="resultsCount"></span>
+        </div>
+      </div>
+      <div id="resultsArea">
+        <div class="placeholder-state">
+          <div class="emoji">🍲</div>
+          <h3>Nothing cooked up yet</h3>
+          <p>Add a few ingredients on the left, pick a diet, and hit "Generate recipes" to see options here.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ RECIPE DETAIL MODAL ============ -->
+<div id="recipeModalBackdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeRecipeModal()">
+  <div class="modal" id="recipeModalContent"></div>
+</div>
+
+<!-- ============ HISTORY MODAL ============ -->
+<div id="historyModalBackdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeHistoryModal()">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-head" style="padding:22px 26px 18px;">
+      <button class="close-x" onclick="closeHistoryModal()">✕</button>
+      <h2 style="font-size:21px; margin:0 0 6px;">Recent generations</h2>
+      <p style="font-size:13px; margin:0;">Revisit the last few batches of recipes you generated.</p>
+    </div>
+    <div class="modal-body-simple" id="historyModalBody" style="max-height:60vh; overflow-y:auto;"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   STATE
+   ============================================================ */
+const APP = {
+  ingredients: [],       // array of strings
+  diet: 'any',
+  imageBase64: null,
+  imageMediaType: null,
+  recognition: null,
+  listening: false,
+  recipes: [],                  // current generation
+  currentDisplayedRecipes: [],  // whichever list is showing in the grid right now
+  savedRecipes: [],             // favorites, persisted per user
+  history: [],                  // last few generations, persisted per user
+  resultsView: 'generated',     // 'generated' | 'saved'
+  activeModalRecipeId: null,
+  activeModalServings: null,
+};
+
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+let toastTimer = null;
+function showToast(msg, isError=false){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.toggle('error', isError);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 3800);
+}
+
+/* ============================================================
+   AUTH (client-side demo only, stored in localStorage)
+   ============================================================ */
+function getUsers(){ try{ return JSON.parse(localStorage.getItem('simmer_users')||'{}'); }catch(e){ return {}; } }
+function saveUsers(u){ localStorage.setItem('simmer_users', JSON.stringify(u)); }
+
+function currentUserEmail(){ return sessionStorage.getItem('simmer_currentUser') || 'anon'; }
+function makeId(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+
+function loadSavedRecipes(){
+  try{ APP.savedRecipes = JSON.parse(localStorage.getItem('simmer_saved_' + currentUserEmail()) || '[]'); }
+  catch(e){ APP.savedRecipes = []; }
+}
+function persistSavedRecipes(){
+  localStorage.setItem('simmer_saved_' + currentUserEmail(), JSON.stringify(APP.savedRecipes));
+}
+
+function loadHistory(){
+  try{ APP.history = JSON.parse(localStorage.getItem('simmer_history_' + currentUserEmail()) || '[]'); }
+  catch(e){ APP.history = []; }
+}
+function persistHistory(){
+  localStorage.setItem('simmer_history_' + currentUserEmail(), JSON.stringify(APP.history));
+}
+
+function setAuthTab(which){
+  const isLogin = which === 'login';
+  $('#tabLoginBtn').classList.toggle('active', isLogin);
+  $('#tabSignupBtn').classList.toggle('active', !isLogin);
+  $('#loginForm').classList.toggle('hidden', !isLogin);
+  $('#signupForm').classList.toggle('hidden', isLogin);
+}
+
+function handleSignup(e){
+  e.preventDefault();
+  const name = $('#signupName').value.trim();
+  const email = $('#signupEmail').value.trim().toLowerCase();
+  const password = $('#signupPassword').value;
+  const errBox = $('#signupError');
+  errBox.classList.remove('show');
+
+  const users = getUsers();
+  if(users[email]){
+    errBox.textContent = 'An account with this email already exists. Try signing in instead.';
+    errBox.classList.add('show');
+    return false;
+  }
+  users[email] = { name, password };
+  saveUsers(users);
+  sessionStorage.setItem('simmer_currentUser', email);
+  enterApp();
+  return false;
+}
+
+function handleLogin(e){
+  e.preventDefault();
+  const email = $('#loginEmail').value.trim().toLowerCase();
+  const password = $('#loginPassword').value;
+  const errBox = $('#loginError');
+  errBox.classList.remove('show');
+
+  const users = getUsers();
+  const user = users[email];
+  if(!user || user.password !== password){
+    errBox.textContent = 'Incorrect email or password. New here? Use "Create Account".';
+    errBox.classList.add('show');
+    return false;
+  }
+  sessionStorage.setItem('simmer_currentUser', email);
+  enterApp();
+  return false;
+}
+
+function logout(){
+  sessionStorage.removeItem('simmer_currentUser');
+  APP.ingredients = [];
+  APP.recipes = [];
+  APP.savedRecipes = [];
+  APP.history = [];
+  clearImage();
+  $('#appScreen').classList.add('hidden');
+  $('#loginScreen').classList.remove('hidden');
+  $('#loginForm').reset();
+}
+
+function enterApp(){
+  const email = sessionStorage.getItem('simmer_currentUser');
+  const users = getUsers();
+  const user = users[email] || { name: email };
+  $('#userNameLabel').textContent = user.name || email;
+  $('#userAvatar').textContent = (user.name || email || '?').trim().charAt(0).toUpperCase();
+  $('#loginScreen').classList.add('hidden');
+  $('#appScreen').classList.remove('hidden');
+  loadSavedRecipes();
+  loadHistory();
+  renderChips();
+  initResultsArea();
+}
+
+// auto-login if session already active
+(function checkSession(){
+  const email = sessionStorage.getItem('simmer_currentUser');
+  if(email){ enterApp(); }
+})();
+
+/* ============================================================
+   INPUT TABS (photo / voice / type)
+   ============================================================ */
+function setInputTab(tab){
+  $$('.input-tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  $$('.tabpane').forEach(p => p.classList.remove('active'));
+  $('#pane-' + tab).classList.add('active');
+  if(tab === 'voice') checkSpeechSupport();
+}
+
+/* ============================================================
+   INGREDIENT CHIPS
+   ============================================================ */
+function normalizeIngredient(s){
+  return s.trim().toLowerCase().replace(/\s+/g,' ').replace(/^[.,-]+|[.,-]+$/g,'');
+}
+
+function addIngredient(raw){
+  const name = normalizeIngredient(raw);
+  if(!name || name.length > 40) return;
+  if(APP.ingredients.includes(name)) return;
+  APP.ingredients.push(name);
+  renderChips();
+}
+
+function removeIngredient(name){
+  APP.ingredients = APP.ingredients.filter(i => i !== name);
+  renderChips();
+}
+
+function clearAllIngredients(){
+  APP.ingredients = [];
+  renderChips();
+}
+
+function renderChips(){
+  const wrap = $('#chipsContainer');
+  wrap.innerHTML = '';
+  if(APP.ingredients.length === 0){
+    wrap.innerHTML = '<span class="chip empty-hint">No ingredients yet — add some above</span>';
+  } else {
+    APP.ingredients.forEach(name => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.innerHTML = `<span>${escapeHtml(name)}</span>`;
+      const btn = document.createElement('button');
+      btn.textContent = '✕';
+      btn.onclick = () => removeIngredient(name);
+      chip.appendChild(btn);
+      wrap.appendChild(chip);
+    });
+  }
+  $('#ingredientCount').textContent = APP.ingredients.length;
+  $('#generateBtn').disabled = APP.ingredients.length === 0;
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/* ---- type tab ---- */
+function handleTypeKeydown(e){
+  if(e.key === 'Enter' || e.key === ','){
+    e.preventDefault();
+    addFromTypeInput();
+  }
+}
+function addFromTypeInput(){
+  const input = $('#typeInput');
+  const raw = input.value.replace(/,$/,'');
+  if(raw.trim()){
+    raw.split(',').forEach(part => addIngredient(part));
+  }
+  input.value = '';
+  input.focus();
+}
+
+/* ============================================================
+   PHOTO UPLOAD + DETECTION
+   ============================================================ */
+const dropzone = $('#dropzone');
+['dragover','dragenter'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
+['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+dropzone.addEventListener('drop', e => {
+  const file = e.dataTransfer.files[0];
+  if(file) loadImageFile(file);
+});
+
+function handleFileSelect(e){
+  const file = e.target.files[0];
+  if(file) loadImageFile(file);
+}
+
+function loadImageFile(file){
+  if(!file.type.startsWith('image/')){
+    showToast('Please choose an image file', true);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = reader.result;
+    const [meta, b64] = dataUrl.split(',');
+    APP.imageMediaType = (meta.match(/data:(.*?);base64/) || [,'image/jpeg'])[1];
+    APP.imageBase64 = b64;
+    $('#imgPreview').src = dataUrl;
+    $('#imgPreviewWrap').classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage(){
+  APP.imageBase64 = null;
+  APP.imageMediaType = null;
+  $('#fileInput').value = '';
+  $('#imgPreviewWrap').classList.add('hidden');
+}
+
+async function detectIngredientsFromImage(){
+  if(!APP.imageBase64){ showToast('Upload a photo first', true); return; }
+
+  const btn = $('#detectBtn');
+  const original = btn.textContent;
+  btn.textContent = 'Detecting…';
+  btn.disabled = true;
+
+  try{
+    const text = await callAI({
+      model: MODEL_VISION,
+      maxTokens: 500,
+      jsonMode: true,
+      system: "You are a precise food-ingredient identifier. Look at the photo and list only actual food ingredients you can see. Respond with ONLY valid JSON in the exact shape {\"ingredients\": [\"ingredient one\", \"ingredient two\"]} and nothing else — no markdown, no commentary.",
+      messages: [{
+        role: 'user',
+        content: [
+          { type:'text', text:'Identify the distinct food ingredients visible in this image.' },
+          { type:'image_url', image_url:{ url: `data:${APP.imageMediaType};base64,${APP.imageBase64}` } }
+        ]
+      }]
+    });
+    const parsed = extractJson(text);
+    const list = parsed.ingredients || [];
+    if(list.length === 0){
+      showToast('No ingredients detected — try another photo or add manually', true);
+    } else {
+      list.forEach(addIngredient);
+      showToast(`Added ${list.length} ingredient${list.length>1?'s':''} from photo`);
+    }
+  }catch(err){
+    handleApiError(err);
+  }finally{
+    btn.textContent = original;
+    btn.disabled = false;
+  }
+}
+
+/* ============================================================
+   VOICE INPUT (Web Speech API)
+   ============================================================ */
+function checkSpeechSupport(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    $('#voiceUnsupported').style.display = 'block';
+    $('#micBtn').disabled = true;
+    $('#micBtn').style.opacity = 0.5;
+  }
+}
+
+function getRecognition(){
+  if(APP.recognition) return APP.recognition;
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition) return null;
+  const rec = new SpeechRecognition();
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.lang = 'en-US';
+
+  rec.onresult = (event) => {
+    let finalText = $('#transcriptBox').dataset.final || '';
+    let interim = '';
+    for(let i = event.resultIndex; i < event.results.length; i++){
+      const chunk = event.results[i][0].transcript;
+      if(event.results[i].isFinal) finalText += chunk + ' ';
+      else interim += chunk;
+    }
+    $('#transcriptBox').dataset.final = finalText;
+    $('#transcriptBox').textContent = (finalText + interim).trim();
+  };
+  rec.onerror = (e) => {
+    showToast('Voice recognition error: ' + e.error, true);
+    stopListening();
+  };
+  rec.onend = () => {
+    if(APP.listening){ try{ rec.start(); }catch(e){} } // keep listening until user stops
+  };
+  APP.recognition = rec;
+  return rec;
+}
+
+function toggleListening(){
+  const rec = getRecognition();
+  if(!rec){ showToast('Speech recognition is not supported in this browser', true); return; }
+  APP.listening ? stopListening() : startListening();
+}
+
+function startListening(){
+  const rec = getRecognition();
+  if(!rec) return;
+  APP.listening = true;
+  $('#micBtn').classList.add('listening');
+  $('#micStatus').textContent = 'Listening… tap again to stop';
+  try{ rec.start(); }catch(e){}
+}
+
+function stopListening(){
+  APP.listening = false;
+  $('#micBtn').classList.remove('listening');
+  $('#micStatus').textContent = 'Tap the mic and list your ingredients';
+  if(APP.recognition){ try{ APP.recognition.stop(); }catch(e){} }
+}
+
+function addTranscriptAsIngredients(){
+  const text = $('#transcriptBox').textContent.trim();
+  if(!text){ showToast('Say a few ingredients first', true); return; }
+  const parts = text.split(/,| and |\n/i);
+  let added = 0;
+  parts.forEach(p => { if(normalizeIngredient(p)){ addIngredient(p); added++; } });
+  showToast(`Added ${added} ingredient${added!==1?'s':''} from voice`);
+  $('#transcriptBox').textContent = '';
+  $('#transcriptBox').dataset.final = '';
+}
+
+/* ============================================================
+   DIET SELECTOR
+   ============================================================ */
+$('#dietGrid').addEventListener('click', (e) => {
+  const btn = e.target.closest('.diet-opt');
+  if(!btn) return;
+  $$('.diet-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  APP.diet = btn.dataset.diet;
+});
+
+/* ============================================================
+   AI HELPERS — calls our own /api/chat serverless function,
+   which forwards to Groq with the API key kept server-side.
+   ============================================================ */
+const MODEL_TEXT = 'openai/gpt-oss-20b';    // recipe writing (text-only) — higher free-tier TPM than the 120b model
+const MODEL_VISION = 'qwen/qwen3.6-27b';    // ingredient photo detection (vision + JSON mode)
+
+async function callAI({ system, messages, maxTokens = 2000, model = MODEL_TEXT, jsonMode = true }){
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ model, system, messages, maxTokens, jsonMode })
+  });
+
+  let data;
+  try{ data = await res.json(); }catch(e){ data = {}; }
+
+  if(!res.ok){
+    throw new Error(`API_ERROR:${res.status}:${data.error || 'Request failed'}`);
+  }
+  return data.text || '';
+}
+
+function extractJson(text){
+  let t = text.trim();
+  t = t.replace(/^```json/i, '').replace(/^```/, '').replace(/```\s*$/,'').trim();
+  const start = t.indexOf('{');
+  const end = t.lastIndexOf('}');
+  if(start !== -1 && end !== -1) t = t.slice(start, end + 1);
+  return JSON.parse(t);
+}
+
+function handleApiError(err){
+  const msg = err && err.message || String(err);
+  if(msg.startsWith('API_ERROR:500') && msg.toLowerCase().includes('groq_api_key')){
+    showToast('Server is missing GROQ_API_KEY — add it in Vercel project settings.', true);
+  } else if(msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('request too large') || msg.toLowerCase().includes('tokens per minute')){
+    showToast('Groq free-tier limit hit for this request. Wait a minute and try again, or use fewer ingredients.', true);
+  } else if(msg.startsWith('API_ERROR:')){
+    showToast('AI request failed — ' + msg.split(':').slice(2).join(':').trim(), true);
+  } else if(err instanceof SyntaxError){
+    showToast('Could not parse the AI response. Please try again.', true);
+  } else {
+    showToast('Something went wrong: ' + msg, true);
+  }
+  console.error(err);
+}
+
+/* ============================================================
+   RECIPE GENERATION
+   ============================================================ */
+const RECIPE_SCHEMA_FIELDS = `{
+      "title": "string",
+      "cuisine": "string",
+      "description": "one or two sentence appetizing description",
+      "dietTags": ["vegan" | "vegetarian" | "non-vegetarian" | "eggetarian" | "keto" | "gluten-free"],
+      "prepTime": "e.g. 10 mins",
+      "cookTime": "e.g. 20 mins",
+      "servings": 2,
+      "difficulty": "Easy" | "Medium" | "Hard",
+      "ingredients": [ { "item": "string", "quantity": "string" } ],
+      "steps": [ "string" ],
+      "searchQuery": "a short, specific search phrase to find this exact dish online",
+      "nutrition": { "calories": number, "protein": "e.g. 18g", "carbs": "e.g. 40g", "fat": "e.g. 12g" }
+    }`;
+
+async function generateRecipes(){
+  if(APP.ingredients.length === 0){ showToast('Add at least one ingredient first', true); return; }
+
+  renderLoadingState();
+  $('#generateBtn').disabled = true;
+
+  try{
+    const dietLabel = $('.diet-opt.active').textContent.trim();
+    const prompt = `Available ingredients: ${APP.ingredients.join(', ')}.
+Dietary preference: ${dietLabel}.
+
+Suggest 3 distinct recipe options that primarily use these ingredients (a few common pantry staples like oil, salt, water, spices may be assumed available). Respect the dietary preference strictly. For each recipe include precise ingredient quantities (assume it serves 2 unless noted), clear numbered preparation steps, and a rough per-serving nutrition estimate.
+
+Respond with ONLY valid JSON in exactly this shape, no markdown fences, no commentary:
+{
+  "recipes": [ ${RECIPE_SCHEMA_FIELDS} ]
+}`;
+
+    const text = await callAI({
+      model: MODEL_TEXT,
+      maxTokens: 4000,
+      jsonMode: true,
+      system: 'You are an expert chef and recipe developer who writes precise, home-cook-friendly recipes with realistic nutrition estimates. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const parsed = extractJson(text);
+    APP.recipes = (parsed.recipes || []).map(r => ({ ...r, id: makeId() }));
+
+    APP.history.unshift({
+      id: makeId(),
+      timestamp: Date.now(),
+      ingredients: [...APP.ingredients],
+      diet: dietLabel,
+      recipes: APP.recipes
+    });
+    APP.history = APP.history.slice(0, 5);
+    persistHistory();
+
+    setResultsView('generated');
+  }catch(err){
+    handleApiError(err);
+    renderEmptyState();
+  }finally{
+    $('#generateBtn').disabled = APP.ingredients.length === 0;
+  }
+}
+
+function initResultsArea(){
+  APP.resultsView = 'generated';
+  $('#tabGenerated').classList.add('active');
+  $('#tabSaved').classList.remove('active');
+  $('#savedCountLabel').textContent = `(${APP.savedRecipes.length})`;
+  renderEmptyState();
+}
+
+function renderLoadingState(){
+  $('#resultsCount').textContent = '';
+  $('#resultsArea').innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Simmering some recipe ideas from your ingredients…</p>
+    </div>`;
+}
+
+function renderEmptyState(){
+  $('#resultsCount').textContent = '';
+  $('#resultsArea').innerHTML = `
+    <div class="placeholder-state">
+      <div class="emoji">🍲</div>
+      <h3>Nothing cooked up yet</h3>
+      <p>Add a few ingredients on the left, pick a diet, and hit "Generate recipes" to see options here.</p>
+    </div>`;
+}
+
+function dietTagClass(tag){
+  const t = (tag||'').toLowerCase();
+  if(t.includes('non')) return 'nonveg';
+  return 'veg';
+}
+
+/* ---- Generated / Saved tabs ---- */
+function setResultsView(view){
+  APP.resultsView = view;
+  $('#tabGenerated').classList.toggle('active', view === 'generated');
+  $('#tabSaved').classList.toggle('active', view === 'saved');
+  if(view === 'generated'){
+    APP.recipes.length ? renderRecipeResults(APP.recipes, { isSavedView:false }) : renderEmptyState();
+  } else {
+    renderRecipeResults(APP.savedRecipes, { isSavedView:true });
+  }
+}
+
+function renderRecipeResults(list, opts = {}){
+  APP.currentDisplayedRecipes = list;
+  const isSaved = !!opts.isSavedView;
+  $('#resultsCount').textContent = list.length ? `${list.length} option${list.length!==1?'s':''}` : '';
+
+  if(list.length === 0){
+    $('#resultsArea').innerHTML = isSaved ? `
+      <div class="empty-state">
+        <div class="emoji">🤍</div>
+        <h3>No saved recipes yet</h3>
+        <p>Tap the heart on any recipe to save it here for later.</p>
+      </div>` : `
+      <div class="empty-state">
+        <div class="emoji">🤔</div>
+        <h3>No recipes came back</h3>
+        <p>Try adding a couple more ingredients or switching the diet filter.</p>
+      </div>`;
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'recipe-grid';
+  list.forEach((r) => {
+    const isFav = APP.savedRecipes.some(s => s.id === r.id);
+    const card = document.createElement('div');
+    card.className = 'recipe-card';
+    card.onclick = () => openRecipeModal(r.id);
+    card.innerHTML = `
+      <button class="heart-btn ${isFav?'active':''}" title="${isFav?'Remove from saved':'Save recipe'}" onclick="event.stopPropagation(); toggleSaveRecipe('${r.id}')">${isFav?'♥':'♡'}</button>
+      <div class="tag-row">
+        ${(r.dietTags||[]).map(t => `<span class="tagpill ${dietTagClass(t)}">${escapeHtml(t)}</span>`).join('')}
+        ${r.cuisine ? `<span class="tagpill cuisine">${escapeHtml(r.cuisine)}</span>` : ''}
+      </div>
+      <h3>${escapeHtml(r.title||'Untitled recipe')}</h3>
+      <p class="desc">${escapeHtml(r.description||'')}</p>
+      <div class="meta-row">
+        <span>⏱ ${escapeHtml(r.prepTime||'—')} prep</span>
+        <span>🔥 ${escapeHtml(r.cookTime||'—')} cook</span>
+        <span>◆ ${escapeHtml(r.difficulty||'—')}</span>
+        ${r.nutrition && r.nutrition.calories ? `<span>⚡ ${escapeHtml(String(r.nutrition.calories))} kcal</span>` : ''}
+      </div>
+      ${!isSaved ? `<button class="regen-btn" onclick="event.stopPropagation(); regenerateRecipe('${r.id}')">↻ Try another</button>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+  $('#resultsArea').innerHTML = '';
+  $('#resultsArea').appendChild(grid);
+}
+
+/* ---- Save / favorite ---- */
+function toggleSaveRecipe(id){
+  const idx = APP.savedRecipes.findIndex(s => s.id === id);
+  if(idx > -1){
+    APP.savedRecipes.splice(idx, 1);
+    showToast('Removed from saved');
+  } else {
+    const recipe = APP.currentDisplayedRecipes.find(r => r.id === id)
+      || (APP.activeModalRecipeId === id ? findActiveModalRecipe() : null);
+    if(!recipe) return;
+    APP.savedRecipes.unshift({ ...recipe, savedAt: Date.now() });
+    showToast('Saved recipe');
+  }
+  persistSavedRecipes();
+  $('#savedCountLabel').textContent = `(${APP.savedRecipes.length})`;
+
+  if(APP.resultsView === 'saved'){
+    renderRecipeResults(APP.savedRecipes, { isSavedView:true });
+  } else if(APP.currentDisplayedRecipes.length){
+    renderRecipeResults(APP.currentDisplayedRecipes, { isSavedView: APP.resultsView === 'saved' });
+  }
+  if(APP.activeModalRecipeId === id && !$('#recipeModalBackdrop').classList.contains('hidden')){
+    renderModalBody();
+  }
+}
+
+/* ---- Regenerate a single card ---- */
+async function regenerateRecipe(id){
+  const idx = APP.recipes.findIndex(r => r.id === id);
+  if(idx === -1) return;
+
+  const cards = $$('#resultsArea .recipe-card');
+  const card = cards[idx];
+  const originalHtml = card ? card.innerHTML : null;
+  if(card){
+    card.classList.add('regenerating');
+    card.innerHTML = `<div class="card-loading"><div class="spinner" style="width:26px;height:26px;margin:0 auto 10px;"></div><p style="font-size:12.5px;color:var(--ink-soft);">Cooking up a swap…</p></div>`;
+  }
+
+  try{
+    const dietLabel = $('.diet-opt.active').textContent.trim();
+    const otherTitles = APP.recipes.filter(r => r.id !== id).map(r => r.title).join(', ') || 'none yet';
+    const prompt = `Available ingredients: ${APP.ingredients.join(', ')}.
+Dietary preference: ${dietLabel}.
+
+Suggest ONE new recipe, different from these already-suggested dishes: ${otherTitles}. Use precise ingredient quantities (assume it serves 2 unless noted), clear numbered preparation steps, and a rough per-serving nutrition estimate.
+
+Respond with ONLY valid JSON in exactly this shape, no markdown fences, no commentary:
+{ "recipe": ${RECIPE_SCHEMA_FIELDS} }`;
+
+    const text = await callAI({
+      model: MODEL_TEXT,
+      maxTokens: 1800,
+      jsonMode: true,
+      system: 'You are an expert chef and recipe developer. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const parsed = extractJson(text);
+    if(!parsed.recipe) throw new Error('No recipe returned');
+    APP.recipes[idx] = { ...parsed.recipe, id: makeId() };
+    if(APP.resultsView === 'generated') renderRecipeResults(APP.recipes, { isSavedView:false });
+  }catch(err){
+    handleApiError(err);
+    if(card){
+      card.classList.remove('regenerating');
+      if(originalHtml) card.innerHTML = originalHtml;
+    }
+  }
+}
+
+/* ---- History ---- */
+function openHistoryModal(){
+  const body = $('#historyModalBody');
+  if(APP.history.length === 0){
+    body.innerHTML = `
+      <div class="empty-state" style="border:none; padding:30px 10px;">
+        <div class="emoji">🕘</div>
+        <h3>No history yet</h3>
+        <p>Recipes you generate will show up here so you can revisit them.</p>
+      </div>`;
+  } else {
+    body.innerHTML = APP.history.map(h => `
+      <div class="history-item">
+        <div>
+          <div class="history-date">${new Date(h.timestamp).toLocaleString()}</div>
+          <div class="history-ing">${escapeHtml(h.ingredients.join(', '))}</div>
+          <div class="history-diet">${escapeHtml(h.diet)} · ${h.recipes.length} recipe${h.recipes.length!==1?'s':''}</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="viewHistoryEntry('${h.id}')">View</button>
+      </div>
+    `).join('');
+  }
+  $('#historyModalBackdrop').classList.remove('hidden');
+}
+function closeHistoryModal(){
+  $('#historyModalBackdrop').classList.add('hidden');
+}
+function viewHistoryEntry(id){
+  const entry = APP.history.find(h => h.id === id);
+  if(!entry) return;
+  APP.recipes = entry.recipes;
+  setResultsView('generated');
+  closeHistoryModal();
+  showToast('Loaded from history');
+}
+
+/* ============================================================
+   QUANTITY SCALING (for the servings adjuster)
+   ============================================================ */
+function parseLeadingNumber(str){
+  const s = String(str || '').trim();
+  const m = s.match(/^(\d+\s\d+\/\d+|\d+\/\d+|\d+\.\d+|\d+)/);
+  if(!m) return null;
+  const token = m[1];
+  let value;
+  if(token.includes('/')){
+    if(token.includes(' ')){
+      const [whole, frac] = token.split(' ');
+      const [n, d] = frac.split('/').map(Number);
+      value = Number(whole) + (n / d);
+    } else {
+      const [n, d] = token.split('/').map(Number);
+      value = n / d;
+    }
+  } else {
+    value = parseFloat(token);
+  }
+  return { value, rest: s.slice(m[0].length) };
+}
+
+function formatScaledNumber(n){
+  if(Math.abs(n - Math.round(n)) < 0.05) return String(Math.max(0, Math.round(n)));
+  const whole = Math.floor(n);
+  const frac = n - whole;
+  const fracs = [[0.25,'¼'],[0.33,'⅓'],[0.5,'½'],[0.67,'⅔'],[0.75,'¾']];
+  for(const [val, sym] of fracs){
+    if(Math.abs(frac - val) < 0.06) return whole > 0 ? `${whole}${sym}` : sym;
+  }
+  return String(Math.round(n * 100) / 100);
+}
+
+function scaleIngredientQty(qtyStr, ratio){
+  if(!qtyStr || ratio === 1) return qtyStr;
+  const parsed = parseLeadingNumber(qtyStr);
+  if(!parsed) return qtyStr;
+  return formatScaledNumber(parsed.value * ratio) + parsed.rest;
+}
+
+/* ============================================================
+   RECIPE DETAIL MODAL
+   ============================================================ */
+function findActiveModalRecipe(){
+  return APP.currentDisplayedRecipes.find(x => x.id === APP.activeModalRecipeId)
+    || APP.savedRecipes.find(x => x.id === APP.activeModalRecipeId)
+    || null;
+}
+
+function openRecipeModal(id){
+  const r = APP.currentDisplayedRecipes.find(x => x.id === id);
+  if(!r) return;
+  APP.activeModalRecipeId = id;
+  APP.activeModalServings = r.servings || 2;
+  renderModalBody();
+  $('#recipeModalBackdrop').classList.remove('hidden');
+}
+
+function closeRecipeModal(){
+  $('#recipeModalBackdrop').classList.add('hidden');
+  APP.activeModalRecipeId = null;
+}
+
+function adjustServings(delta){
+  const next = Math.max(1, (APP.activeModalServings || 2) + delta);
+  APP.activeModalServings = next;
+  renderModalBody();
+}
+
+function renderModalBody(){
+  const r = findActiveModalRecipe();
+  if(!r) return;
+  const base = r.servings || 2;
+  const current = APP.activeModalServings || base;
+  const ratio = current / base;
+  const isFav = APP.savedRecipes.some(s => s.id === r.id);
+
+  const scaledIngredients = (r.ingredients||[]).map(i => ({
+    item: i.item,
+    quantity: scaleIngredientQty(i.quantity || '', ratio)
+  }));
+  const ingredientsHtml = scaledIngredients.map(i => `
+    <div class="r-item"><span>${escapeHtml(i.item||'')}</span><span class="qty">${escapeHtml(i.quantity||'')}</span></div>
+  `).join('');
+
+  const stepsHtml = (r.steps||[]).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+
+  const searchQuery = r.searchQuery || (r.title + ' recipe');
+  const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(searchQuery);
+
+  const n = r.nutrition || {};
+  const nutritionHtml = (n.calories || n.protein || n.carbs || n.fat) ? `
+    <div class="nutrition-row">
+      ${n.calories ? `<div class="nutrition-pill"><span class="val">${escapeHtml(String(n.calories))}</span><span class="lbl">kcal</span></div>` : ''}
+      ${n.protein ? `<div class="nutrition-pill"><span class="val">${escapeHtml(n.protein)}</span><span class="lbl">protein</span></div>` : ''}
+      ${n.carbs ? `<div class="nutrition-pill"><span class="val">${escapeHtml(n.carbs)}</span><span class="lbl">carbs</span></div>` : ''}
+      ${n.fat ? `<div class="nutrition-pill"><span class="val">${escapeHtml(n.fat)}</span><span class="lbl">fat</span></div>` : ''}
+    </div>` : '';
+
+  $('#recipeModalContent').innerHTML = `
+    <div class="modal-head">
+      <button class="close-x" onclick="closeRecipeModal()">✕</button>
+      <button class="modal-heart ${isFav?'active':''}" title="${isFav?'Remove from saved':'Save recipe'}" onclick="toggleSaveRecipe('${r.id}')">${isFav?'♥':'♡'}</button>
+      <div class="tag-row">
+        ${(r.dietTags||[]).map(t => `<span class="tagpill ${dietTagClass(t)}">${escapeHtml(t)}</span>`).join('')}
+        ${r.cuisine ? `<span class="tagpill cuisine">${escapeHtml(r.cuisine)}</span>` : ''}
+      </div>
+      <h2>${escapeHtml(r.title||'')}</h2>
+      <p>${escapeHtml(r.description||'')}</p>
+      <div class="meta-row">
+        <span>⏱ Prep ${escapeHtml(r.prepTime||'—')}</span>
+        <span>🔥 Cook ${escapeHtml(r.cookTime||'—')}</span>
+        <span>◆ ${escapeHtml(r.difficulty||'—')}</span>
+        <span>🍽 Serves
+          <span class="servings-stepper">
+            <button onclick="adjustServings(-1)">−</button>
+            <span>${current}</span>
+            <button onclick="adjustServings(1)">+</button>
+          </span>
+        </span>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div>
+        <h4>Shopping list</h4>
+        <div class="receipt">
+          <div class="r-title">Simmer</div>
+          <div class="r-sub">${escapeHtml(r.title||'')}</div>
+          <div class="r-divider"></div>
+          ${ingredientsHtml}
+          <div class="r-divider"></div>
+          <div class="r-foot">SERVES ${current} · ${(r.dietTags||[]).join(', ').toUpperCase()}</div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="downloadShoppingList()">⬇ Download list</button>
+        </div>
+        <div class="modal-actions">
+          <a class="btn btn-outline btn-sm" style="flex:1; text-decoration:none;" href="${searchUrl}" target="_blank" rel="noopener">🔗 Find this recipe online</a>
+        </div>
+        ${nutritionHtml}
+      </div>
+      <div>
+        <h4>Preparation</h4>
+        <ol class="steps-list">${stepsHtml}</ol>
+      </div>
+    </div>
+  `;
+}
+
+function downloadShoppingList(){
+  const r = findActiveModalRecipe();
+  if(!r) return;
+  const base = r.servings || 2;
+  const current = APP.activeModalServings || base;
+  const ratio = current / base;
+  const ingredients = (r.ingredients||[]).map(i => ({
+    item: i.item,
+    quantity: scaleIngredientQty(i.quantity || '', ratio)
+  }));
+
+  const lines = [];
+  const width = 34;
+  const pad = (s) => s.length >= width ? s : s + ' '.repeat(width - s.length);
+  lines.push('='.repeat(width));
+  lines.push('           SHOPPING LIST');
+  lines.push('='.repeat(width));
+  lines.push((r.title||'').toUpperCase());
+  lines.push(`Serves ${current}  ·  ${(r.dietTags||[]).join(', ')}`);
+  lines.push('-'.repeat(width));
+  ingredients.forEach(i => {
+    lines.push(`[ ] ${pad(i.item||'')} ${i.quantity||''}`.trim());
+  });
+  lines.push('-'.repeat(width));
+  lines.push('Generated by Simmer — AI Recipe Generator');
+  lines.push(new Date().toLocaleDateString());
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${(r.title||'shopping-list').toLowerCase().replace(/[^a-z0-9]+/g,'-')}-shopping-list.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Shopping list downloaded');
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderChips();
+</script>
+</body>
+</html>
