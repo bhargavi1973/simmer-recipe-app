@@ -263,25 +263,43 @@
   .generate-btn svg{ width:18px; height:18px; }
 
   /* results */
-  .results-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; }
-  .results-head h2{ font-size:22px; margin:0; }
+  .results-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+  .results-tabs{ display:flex; align-items:baseline; gap:14px; }
+  .rtab{ background:none; border:none; padding:0; font-family:'Fraunces',serif; font-size:22px; font-weight:600; color:var(--ink-faint); cursor:pointer; }
+  .rtab.active{ color:var(--ink); }
+  .rtab span{ font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; }
+  .results-head-right{ display:flex; align-items:center; gap:10px; }
   .results-head .count{ font-size:13px; color:var(--ink-soft); }
   .recipe-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:18px; }
   .recipe-card{
     background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:18px;
     box-shadow:var(--card-shadow); cursor:pointer; transition:.15s; display:flex; flex-direction:column; gap:10px;
+    position:relative;
   }
   .recipe-card:hover{ transform:translateY(-2px); border-color:var(--basil); }
-  .recipe-card .tag-row{ display:flex; gap:6px; flex-wrap:wrap; }
+  .recipe-card .tag-row{ display:flex; gap:6px; flex-wrap:wrap; padding-right:38px; }
   .tagpill{ font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; padding:4px 9px; border-radius:999px; }
   .tagpill.veg{ background:#E4EEDD; color:var(--basil-dark); }
   .tagpill.nonveg{ background:#FBE4DA; color:var(--tomato); }
   .tagpill.cuisine{ background:var(--paper-2); color:var(--ink-soft); }
   .recipe-card h3{ font-size:19px; margin:0; line-height:1.2; }
   .recipe-card p.desc{ font-size:13.5px; color:var(--ink-soft); margin:0; line-height:1.5; flex:1; }
-  .recipe-card .meta-row{ display:flex; gap:14px; font-size:12.5px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; }
+  .recipe-card .meta-row{ display:flex; gap:14px; row-gap:6px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; }
   .recipe-card .meta-row span{ display:flex; align-items:center; gap:4px; }
   .recipe-card .meta-row svg{ width:13px; height:13px; }
+  .heart-btn{
+    position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:50%;
+    border:1px solid var(--line); background:var(--paper); color:var(--tomato); font-size:15px;
+    display:flex; align-items:center; justify-content:center; line-height:1; z-index:2;
+  }
+  .heart-btn.active{ background:var(--tomato); color:#fff; border-color:var(--tomato); }
+  .regen-btn{
+    align-self:flex-start; background:none; border:none; color:var(--basil); font-size:12.5px;
+    font-weight:700; padding:0; margin-top:-2px;
+  }
+  .regen-btn:hover{ text-decoration:underline; }
+  .card-loading{ padding:26px 10px 6px; text-align:center; }
+  .recipe-card.regenerating{ pointer-events:none; }
 
   .empty-state, .placeholder-state{
     border:1.5px dashed var(--line); border-radius:14px; padding:60px 24px; text-align:center; color:var(--ink-soft);
@@ -297,6 +315,36 @@
   }
   @keyframes spin{ to{ transform:rotate(360deg); } }
   .loading-state p{ font-size:13.5px; color:var(--ink-soft); }
+
+  /* history list */
+  .history-item{ display:flex; justify-content:space-between; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--line); }
+  .history-item:last-child{ border-bottom:none; }
+  .history-date{ font-size:11.5px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; margin-bottom:4px; }
+  .history-ing{ font-size:13.5px; font-weight:600; color:var(--ink); margin-bottom:2px; line-height:1.4; }
+  .history-diet{ font-size:12px; color:var(--ink-soft); text-transform:capitalize; }
+
+  /* servings stepper (inside recipe modal) */
+  .servings-stepper{
+    display:inline-flex; align-items:center; gap:9px; background:rgba(244,238,220,0.12);
+    border:1px solid rgba(244,238,220,0.3); border-radius:999px; padding:3px 8px; margin-left:6px; vertical-align:middle;
+  }
+  .servings-stepper button{
+    width:20px; height:20px; border-radius:50%; border:none; background:rgba(244,238,220,0.2);
+    color:#F4EEDC; font-weight:800; font-size:13px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .servings-stepper span{ min-width:12px; text-align:center; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:13px; }
+
+  /* nutrition pills */
+  .nutrition-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+  .nutrition-pill{ background:var(--paper-2); border:1px solid var(--line); border-radius:10px; padding:8px 12px; text-align:center; min-width:58px; }
+  .nutrition-pill .val{ display:block; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:13.5px; color:var(--ink); }
+  .nutrition-pill .lbl{ font-size:9.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.05em; }
+
+  .modal-heart{
+    position:absolute; top:16px; right:58px; width:32px; height:32px; border-radius:9px;
+    background:rgba(244,238,220,0.14); border:1px solid rgba(244,238,220,0.3); color:#F4EEDC; font-size:15px;
+  }
+  .modal-heart.active{ background:var(--tomato); border-color:var(--tomato); color:#fff; }
 
   /* modal */
   .modal-backdrop{
@@ -542,8 +590,14 @@
     <!-- RIGHT: results -->
     <div>
       <div class="results-head">
-        <h2>Recipe ideas</h2>
-        <span class="count" id="resultsCount"></span>
+        <div class="results-tabs">
+          <button class="rtab active" id="tabGenerated" onclick="setResultsView('generated')">Recipe ideas</button>
+          <button class="rtab" id="tabSaved" onclick="setResultsView('saved')">Saved <span id="savedCountLabel">(0)</span></button>
+        </div>
+        <div class="results-head-right">
+          <button class="btn btn-ghost btn-sm" onclick="openHistoryModal()">History</button>
+          <span class="count" id="resultsCount"></span>
+        </div>
       </div>
       <div id="resultsArea">
         <div class="placeholder-state">
@@ -561,6 +615,18 @@
   <div class="modal" id="recipeModalContent"></div>
 </div>
 
+<!-- ============ HISTORY MODAL ============ -->
+<div id="historyModalBackdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeHistoryModal()">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-head" style="padding:22px 26px 18px;">
+      <button class="close-x" onclick="closeHistoryModal()">✕</button>
+      <h2 style="font-size:21px; margin:0 0 6px;">Recent generations</h2>
+      <p style="font-size:13px; margin:0;">Revisit the last few batches of recipes you generated.</p>
+    </div>
+    <div class="modal-body-simple" id="historyModalBody" style="max-height:60vh; overflow-y:auto;"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -574,7 +640,13 @@ const APP = {
   imageMediaType: null,
   recognition: null,
   listening: false,
-  recipes: [],
+  recipes: [],                  // current generation
+  currentDisplayedRecipes: [],  // whichever list is showing in the grid right now
+  savedRecipes: [],             // favorites, persisted per user
+  history: [],                  // last few generations, persisted per user
+  resultsView: 'generated',     // 'generated' | 'saved'
+  activeModalRecipeId: null,
+  activeModalServings: null,
 };
 
 const $ = sel => document.querySelector(sel);
@@ -598,6 +670,25 @@ function showToast(msg, isError=false){
    ============================================================ */
 function getUsers(){ try{ return JSON.parse(localStorage.getItem('simmer_users')||'{}'); }catch(e){ return {}; } }
 function saveUsers(u){ localStorage.setItem('simmer_users', JSON.stringify(u)); }
+
+function currentUserEmail(){ return sessionStorage.getItem('simmer_currentUser') || 'anon'; }
+function makeId(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+
+function loadSavedRecipes(){
+  try{ APP.savedRecipes = JSON.parse(localStorage.getItem('simmer_saved_' + currentUserEmail()) || '[]'); }
+  catch(e){ APP.savedRecipes = []; }
+}
+function persistSavedRecipes(){
+  localStorage.setItem('simmer_saved_' + currentUserEmail(), JSON.stringify(APP.savedRecipes));
+}
+
+function loadHistory(){
+  try{ APP.history = JSON.parse(localStorage.getItem('simmer_history_' + currentUserEmail()) || '[]'); }
+  catch(e){ APP.history = []; }
+}
+function persistHistory(){
+  localStorage.setItem('simmer_history_' + currentUserEmail(), JSON.stringify(APP.history));
+}
 
 function setAuthTab(which){
   const isLogin = which === 'login';
@@ -649,6 +740,11 @@ function handleLogin(e){
 
 function logout(){
   sessionStorage.removeItem('simmer_currentUser');
+  APP.ingredients = [];
+  APP.recipes = [];
+  APP.savedRecipes = [];
+  APP.history = [];
+  clearImage();
   $('#appScreen').classList.add('hidden');
   $('#loginScreen').classList.remove('hidden');
   $('#loginForm').reset();
@@ -662,6 +758,10 @@ function enterApp(){
   $('#userAvatar').textContent = (user.name || email || '?').trim().charAt(0).toUpperCase();
   $('#loginScreen').classList.add('hidden');
   $('#appScreen').classList.remove('hidden');
+  loadSavedRecipes();
+  loadHistory();
+  renderChips();
+  initResultsArea();
 }
 
 // auto-login if session already active
@@ -965,6 +1065,21 @@ function handleApiError(err){
 /* ============================================================
    RECIPE GENERATION
    ============================================================ */
+const RECIPE_SCHEMA_FIELDS = `{
+      "title": "string",
+      "cuisine": "string",
+      "description": "one or two sentence appetizing description",
+      "dietTags": ["vegan" | "vegetarian" | "non-vegetarian" | "eggetarian" | "keto" | "gluten-free"],
+      "prepTime": "e.g. 10 mins",
+      "cookTime": "e.g. 20 mins",
+      "servings": 2,
+      "difficulty": "Easy" | "Medium" | "Hard",
+      "ingredients": [ { "item": "string", "quantity": "string" } ],
+      "steps": [ "string" ],
+      "searchQuery": "a short, specific search phrase to find this exact dish online",
+      "nutrition": { "calories": number, "protein": "e.g. 18g", "carbs": "e.g. 40g", "fat": "e.g. 12g" }
+    }`;
+
 async function generateRecipes(){
   if(APP.ingredients.length === 0){ showToast('Add at least one ingredient first', true); return; }
 
@@ -976,44 +1091,49 @@ async function generateRecipes(){
     const prompt = `Available ingredients: ${APP.ingredients.join(', ')}.
 Dietary preference: ${dietLabel}.
 
-Suggest 3 distinct recipe options that primarily use these ingredients (a few common pantry staples like oil, salt, water, spices may be assumed available). Respect the dietary preference strictly. For each recipe include precise ingredient quantities (assume it serves 2 unless noted) and clear numbered preparation steps.
+Suggest 3 distinct recipe options that primarily use these ingredients (a few common pantry staples like oil, salt, water, spices may be assumed available). Respect the dietary preference strictly. For each recipe include precise ingredient quantities (assume it serves 2 unless noted), clear numbered preparation steps, and a rough per-serving nutrition estimate.
 
 Respond with ONLY valid JSON in exactly this shape, no markdown fences, no commentary:
 {
-  "recipes": [
-    {
-      "title": "string",
-      "cuisine": "string",
-      "description": "one or two sentence appetizing description",
-      "dietTags": ["vegan" | "vegetarian" | "non-vegetarian" | "eggetarian" | "keto" | "gluten-free"],
-      "prepTime": "e.g. 10 mins",
-      "cookTime": "e.g. 20 mins",
-      "servings": 2,
-      "difficulty": "Easy" | "Medium" | "Hard",
-      "ingredients": [ { "item": "string", "quantity": "string" } ],
-      "steps": [ "string" ],
-      "searchQuery": "a short, specific search phrase to find this exact dish online"
-    }
-  ]
+  "recipes": [ ${RECIPE_SCHEMA_FIELDS} ]
 }`;
 
     const text = await callAI({
       model: MODEL_TEXT,
       maxTokens: 4000,
       jsonMode: true,
-      system: 'You are an expert chef and recipe developer who writes precise, home-cook-friendly recipes. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
+      system: 'You are an expert chef and recipe developer who writes precise, home-cook-friendly recipes with realistic nutrition estimates. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
       messages: [{ role: 'user', content: prompt }]
     });
 
     const parsed = extractJson(text);
-    APP.recipes = parsed.recipes || [];
-    renderRecipeResults();
+    APP.recipes = (parsed.recipes || []).map(r => ({ ...r, id: makeId() }));
+
+    APP.history.unshift({
+      id: makeId(),
+      timestamp: Date.now(),
+      ingredients: [...APP.ingredients],
+      diet: dietLabel,
+      recipes: APP.recipes
+    });
+    APP.history = APP.history.slice(0, 5);
+    persistHistory();
+
+    setResultsView('generated');
   }catch(err){
     handleApiError(err);
     renderEmptyState();
   }finally{
     $('#generateBtn').disabled = APP.ingredients.length === 0;
   }
+}
+
+function initResultsArea(){
+  APP.resultsView = 'generated';
+  $('#tabGenerated').classList.add('active');
+  $('#tabSaved').classList.remove('active');
+  $('#savedCountLabel').textContent = `(${APP.savedRecipes.length})`;
+  renderEmptyState();
 }
 
 function renderLoadingState(){
@@ -1041,10 +1161,30 @@ function dietTagClass(tag){
   return 'veg';
 }
 
-function renderRecipeResults(){
-  $('#resultsCount').textContent = `${APP.recipes.length} option${APP.recipes.length!==1?'s':''}`;
-  if(APP.recipes.length === 0){
-    $('#resultsArea').innerHTML = `
+/* ---- Generated / Saved tabs ---- */
+function setResultsView(view){
+  APP.resultsView = view;
+  $('#tabGenerated').classList.toggle('active', view === 'generated');
+  $('#tabSaved').classList.toggle('active', view === 'saved');
+  if(view === 'generated'){
+    APP.recipes.length ? renderRecipeResults(APP.recipes, { isSavedView:false }) : renderEmptyState();
+  } else {
+    renderRecipeResults(APP.savedRecipes, { isSavedView:true });
+  }
+}
+
+function renderRecipeResults(list, opts = {}){
+  APP.currentDisplayedRecipes = list;
+  const isSaved = !!opts.isSavedView;
+  $('#resultsCount').textContent = list.length ? `${list.length} option${list.length!==1?'s':''}` : '';
+
+  if(list.length === 0){
+    $('#resultsArea').innerHTML = isSaved ? `
+      <div class="empty-state">
+        <div class="emoji">🤍</div>
+        <h3>No saved recipes yet</h3>
+        <p>Tap the heart on any recipe to save it here for later.</p>
+      </div>` : `
       <div class="empty-state">
         <div class="emoji">🤔</div>
         <h3>No recipes came back</h3>
@@ -1052,13 +1192,16 @@ function renderRecipeResults(){
       </div>`;
     return;
   }
+
   const grid = document.createElement('div');
   grid.className = 'recipe-grid';
-  APP.recipes.forEach((r, idx) => {
+  list.forEach((r) => {
+    const isFav = APP.savedRecipes.some(s => s.id === r.id);
     const card = document.createElement('div');
     card.className = 'recipe-card';
-    card.onclick = () => openRecipeModal(idx);
+    card.onclick = () => openRecipeModal(r.id);
     card.innerHTML = `
+      <button class="heart-btn ${isFav?'active':''}" title="${isFav?'Remove from saved':'Save recipe'}" onclick="event.stopPropagation(); toggleSaveRecipe('${r.id}')">${isFav?'♥':'♡'}</button>
       <div class="tag-row">
         ${(r.dietTags||[]).map(t => `<span class="tagpill ${dietTagClass(t)}">${escapeHtml(t)}</span>`).join('')}
         ${r.cuisine ? `<span class="tagpill cuisine">${escapeHtml(r.cuisine)}</span>` : ''}
@@ -1069,21 +1212,207 @@ function renderRecipeResults(){
         <span>⏱ ${escapeHtml(r.prepTime||'—')} prep</span>
         <span>🔥 ${escapeHtml(r.cookTime||'—')} cook</span>
         <span>◆ ${escapeHtml(r.difficulty||'—')}</span>
-      </div>`;
+        ${r.nutrition && r.nutrition.calories ? `<span>⚡ ${escapeHtml(String(r.nutrition.calories))} kcal</span>` : ''}
+      </div>
+      ${!isSaved ? `<button class="regen-btn" onclick="event.stopPropagation(); regenerateRecipe('${r.id}')">↻ Try another</button>` : ''}
+    `;
     grid.appendChild(card);
   });
   $('#resultsArea').innerHTML = '';
   $('#resultsArea').appendChild(grid);
 }
 
+/* ---- Save / favorite ---- */
+function toggleSaveRecipe(id){
+  const idx = APP.savedRecipes.findIndex(s => s.id === id);
+  if(idx > -1){
+    APP.savedRecipes.splice(idx, 1);
+    showToast('Removed from saved');
+  } else {
+    const recipe = APP.currentDisplayedRecipes.find(r => r.id === id)
+      || (APP.activeModalRecipeId === id ? findActiveModalRecipe() : null);
+    if(!recipe) return;
+    APP.savedRecipes.unshift({ ...recipe, savedAt: Date.now() });
+    showToast('Saved recipe');
+  }
+  persistSavedRecipes();
+  $('#savedCountLabel').textContent = `(${APP.savedRecipes.length})`;
+
+  if(APP.resultsView === 'saved'){
+    renderRecipeResults(APP.savedRecipes, { isSavedView:true });
+  } else if(APP.currentDisplayedRecipes.length){
+    renderRecipeResults(APP.currentDisplayedRecipes, { isSavedView: APP.resultsView === 'saved' });
+  }
+  if(APP.activeModalRecipeId === id && !$('#recipeModalBackdrop').classList.contains('hidden')){
+    renderModalBody();
+  }
+}
+
+/* ---- Regenerate a single card ---- */
+async function regenerateRecipe(id){
+  const idx = APP.recipes.findIndex(r => r.id === id);
+  if(idx === -1) return;
+
+  const cards = $$('#resultsArea .recipe-card');
+  const card = cards[idx];
+  const originalHtml = card ? card.innerHTML : null;
+  if(card){
+    card.classList.add('regenerating');
+    card.innerHTML = `<div class="card-loading"><div class="spinner" style="width:26px;height:26px;margin:0 auto 10px;"></div><p style="font-size:12.5px;color:var(--ink-soft);">Cooking up a swap…</p></div>`;
+  }
+
+  try{
+    const dietLabel = $('.diet-opt.active').textContent.trim();
+    const otherTitles = APP.recipes.filter(r => r.id !== id).map(r => r.title).join(', ') || 'none yet';
+    const prompt = `Available ingredients: ${APP.ingredients.join(', ')}.
+Dietary preference: ${dietLabel}.
+
+Suggest ONE new recipe, different from these already-suggested dishes: ${otherTitles}. Use precise ingredient quantities (assume it serves 2 unless noted), clear numbered preparation steps, and a rough per-serving nutrition estimate.
+
+Respond with ONLY valid JSON in exactly this shape, no markdown fences, no commentary:
+{ "recipe": ${RECIPE_SCHEMA_FIELDS} }`;
+
+    const text = await callAI({
+      model: MODEL_TEXT,
+      maxTokens: 1800,
+      jsonMode: true,
+      system: 'You are an expert chef and recipe developer. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const parsed = extractJson(text);
+    if(!parsed.recipe) throw new Error('No recipe returned');
+    APP.recipes[idx] = { ...parsed.recipe, id: makeId() };
+    if(APP.resultsView === 'generated') renderRecipeResults(APP.recipes, { isSavedView:false });
+  }catch(err){
+    handleApiError(err);
+    if(card){
+      card.classList.remove('regenerating');
+      if(originalHtml) card.innerHTML = originalHtml;
+    }
+  }
+}
+
+/* ---- History ---- */
+function openHistoryModal(){
+  const body = $('#historyModalBody');
+  if(APP.history.length === 0){
+    body.innerHTML = `
+      <div class="empty-state" style="border:none; padding:30px 10px;">
+        <div class="emoji">🕘</div>
+        <h3>No history yet</h3>
+        <p>Recipes you generate will show up here so you can revisit them.</p>
+      </div>`;
+  } else {
+    body.innerHTML = APP.history.map(h => `
+      <div class="history-item">
+        <div>
+          <div class="history-date">${new Date(h.timestamp).toLocaleString()}</div>
+          <div class="history-ing">${escapeHtml(h.ingredients.join(', '))}</div>
+          <div class="history-diet">${escapeHtml(h.diet)} · ${h.recipes.length} recipe${h.recipes.length!==1?'s':''}</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="viewHistoryEntry('${h.id}')">View</button>
+      </div>
+    `).join('');
+  }
+  $('#historyModalBackdrop').classList.remove('hidden');
+}
+function closeHistoryModal(){
+  $('#historyModalBackdrop').classList.add('hidden');
+}
+function viewHistoryEntry(id){
+  const entry = APP.history.find(h => h.id === id);
+  if(!entry) return;
+  APP.recipes = entry.recipes;
+  setResultsView('generated');
+  closeHistoryModal();
+  showToast('Loaded from history');
+}
+
+/* ============================================================
+   QUANTITY SCALING (for the servings adjuster)
+   ============================================================ */
+function parseLeadingNumber(str){
+  const s = String(str || '').trim();
+  const m = s.match(/^(\d+\s\d+\/\d+|\d+\/\d+|\d+\.\d+|\d+)/);
+  if(!m) return null;
+  const token = m[1];
+  let value;
+  if(token.includes('/')){
+    if(token.includes(' ')){
+      const [whole, frac] = token.split(' ');
+      const [n, d] = frac.split('/').map(Number);
+      value = Number(whole) + (n / d);
+    } else {
+      const [n, d] = token.split('/').map(Number);
+      value = n / d;
+    }
+  } else {
+    value = parseFloat(token);
+  }
+  return { value, rest: s.slice(m[0].length) };
+}
+
+function formatScaledNumber(n){
+  if(Math.abs(n - Math.round(n)) < 0.05) return String(Math.max(0, Math.round(n)));
+  const whole = Math.floor(n);
+  const frac = n - whole;
+  const fracs = [[0.25,'¼'],[0.33,'⅓'],[0.5,'½'],[0.67,'⅔'],[0.75,'¾']];
+  for(const [val, sym] of fracs){
+    if(Math.abs(frac - val) < 0.06) return whole > 0 ? `${whole}${sym}` : sym;
+  }
+  return String(Math.round(n * 100) / 100);
+}
+
+function scaleIngredientQty(qtyStr, ratio){
+  if(!qtyStr || ratio === 1) return qtyStr;
+  const parsed = parseLeadingNumber(qtyStr);
+  if(!parsed) return qtyStr;
+  return formatScaledNumber(parsed.value * ratio) + parsed.rest;
+}
+
 /* ============================================================
    RECIPE DETAIL MODAL
    ============================================================ */
-function openRecipeModal(idx){
-  const r = APP.recipes[idx];
-  if(!r) return;
+function findActiveModalRecipe(){
+  return APP.currentDisplayedRecipes.find(x => x.id === APP.activeModalRecipeId)
+    || APP.savedRecipes.find(x => x.id === APP.activeModalRecipeId)
+    || null;
+}
 
-  const ingredientsHtml = (r.ingredients||[]).map(i => `
+function openRecipeModal(id){
+  const r = APP.currentDisplayedRecipes.find(x => x.id === id);
+  if(!r) return;
+  APP.activeModalRecipeId = id;
+  APP.activeModalServings = r.servings || 2;
+  renderModalBody();
+  $('#recipeModalBackdrop').classList.remove('hidden');
+}
+
+function closeRecipeModal(){
+  $('#recipeModalBackdrop').classList.add('hidden');
+  APP.activeModalRecipeId = null;
+}
+
+function adjustServings(delta){
+  const next = Math.max(1, (APP.activeModalServings || 2) + delta);
+  APP.activeModalServings = next;
+  renderModalBody();
+}
+
+function renderModalBody(){
+  const r = findActiveModalRecipe();
+  if(!r) return;
+  const base = r.servings || 2;
+  const current = APP.activeModalServings || base;
+  const ratio = current / base;
+  const isFav = APP.savedRecipes.some(s => s.id === r.id);
+
+  const scaledIngredients = (r.ingredients||[]).map(i => ({
+    item: i.item,
+    quantity: scaleIngredientQty(i.quantity || '', ratio)
+  }));
+  const ingredientsHtml = scaledIngredients.map(i => `
     <div class="r-item"><span>${escapeHtml(i.item||'')}</span><span class="qty">${escapeHtml(i.quantity||'')}</span></div>
   `).join('');
 
@@ -1092,9 +1421,19 @@ function openRecipeModal(idx){
   const searchQuery = r.searchQuery || (r.title + ' recipe');
   const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(searchQuery);
 
+  const n = r.nutrition || {};
+  const nutritionHtml = (n.calories || n.protein || n.carbs || n.fat) ? `
+    <div class="nutrition-row">
+      ${n.calories ? `<div class="nutrition-pill"><span class="val">${escapeHtml(String(n.calories))}</span><span class="lbl">kcal</span></div>` : ''}
+      ${n.protein ? `<div class="nutrition-pill"><span class="val">${escapeHtml(n.protein)}</span><span class="lbl">protein</span></div>` : ''}
+      ${n.carbs ? `<div class="nutrition-pill"><span class="val">${escapeHtml(n.carbs)}</span><span class="lbl">carbs</span></div>` : ''}
+      ${n.fat ? `<div class="nutrition-pill"><span class="val">${escapeHtml(n.fat)}</span><span class="lbl">fat</span></div>` : ''}
+    </div>` : '';
+
   $('#recipeModalContent').innerHTML = `
     <div class="modal-head">
       <button class="close-x" onclick="closeRecipeModal()">✕</button>
+      <button class="modal-heart ${isFav?'active':''}" title="${isFav?'Remove from saved':'Save recipe'}" onclick="toggleSaveRecipe('${r.id}')">${isFav?'♥':'♡'}</button>
       <div class="tag-row">
         ${(r.dietTags||[]).map(t => `<span class="tagpill ${dietTagClass(t)}">${escapeHtml(t)}</span>`).join('')}
         ${r.cuisine ? `<span class="tagpill cuisine">${escapeHtml(r.cuisine)}</span>` : ''}
@@ -1104,8 +1443,14 @@ function openRecipeModal(idx){
       <div class="meta-row">
         <span>⏱ Prep ${escapeHtml(r.prepTime||'—')}</span>
         <span>🔥 Cook ${escapeHtml(r.cookTime||'—')}</span>
-        <span>🍽 Serves ${escapeHtml(String(r.servings||'—'))}</span>
         <span>◆ ${escapeHtml(r.difficulty||'—')}</span>
+        <span>🍽 Serves
+          <span class="servings-stepper">
+            <button onclick="adjustServings(-1)">−</button>
+            <span>${current}</span>
+            <button onclick="adjustServings(1)">+</button>
+          </span>
+        </span>
       </div>
     </div>
     <div class="modal-body">
@@ -1117,14 +1462,15 @@ function openRecipeModal(idx){
           <div class="r-divider"></div>
           ${ingredientsHtml}
           <div class="r-divider"></div>
-          <div class="r-foot">SERVES ${escapeHtml(String(r.servings||'—'))} · ${(r.dietTags||[]).join(', ').toUpperCase()}</div>
+          <div class="r-foot">SERVES ${current} · ${(r.dietTags||[]).join(', ').toUpperCase()}</div>
         </div>
         <div class="modal-actions">
-          <button class="btn btn-primary btn-sm" style="flex:1" onclick="downloadShoppingList(${idx})">⬇ Download list</button>
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="downloadShoppingList()">⬇ Download list</button>
         </div>
         <div class="modal-actions">
           <a class="btn btn-outline btn-sm" style="flex:1; text-decoration:none;" href="${searchUrl}" target="_blank" rel="noopener">🔗 Find this recipe online</a>
         </div>
+        ${nutritionHtml}
       </div>
       <div>
         <h4>Preparation</h4>
@@ -1132,16 +1478,19 @@ function openRecipeModal(idx){
       </div>
     </div>
   `;
-  $('#recipeModalBackdrop').classList.remove('hidden');
 }
 
-function closeRecipeModal(){
-  $('#recipeModalBackdrop').classList.add('hidden');
-}
-
-function downloadShoppingList(idx){
-  const r = APP.recipes[idx];
+function downloadShoppingList(){
+  const r = findActiveModalRecipe();
   if(!r) return;
+  const base = r.servings || 2;
+  const current = APP.activeModalServings || base;
+  const ratio = current / base;
+  const ingredients = (r.ingredients||[]).map(i => ({
+    item: i.item,
+    quantity: scaleIngredientQty(i.quantity || '', ratio)
+  }));
+
   const lines = [];
   const width = 34;
   const pad = (s) => s.length >= width ? s : s + ' '.repeat(width - s.length);
@@ -1149,9 +1498,9 @@ function downloadShoppingList(idx){
   lines.push('           SHOPPING LIST');
   lines.push('='.repeat(width));
   lines.push((r.title||'').toUpperCase());
-  lines.push(`Serves ${r.servings||'-'}  ·  ${(r.dietTags||[]).join(', ')}`);
+  lines.push(`Serves ${current}  ·  ${(r.dietTags||[]).join(', ')}`);
   lines.push('-'.repeat(width));
-  (r.ingredients||[]).forEach(i => {
+  ingredients.forEach(i => {
     lines.push(`[ ] ${pad(i.item||'')} ${i.quantity||''}`.trim());
   });
   lines.push('-'.repeat(width));
