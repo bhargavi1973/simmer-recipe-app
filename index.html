@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simmer — AI Recipe Generator</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍲</text></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2333502C'/%3E%3Cpath d='M6.5 17.3q0 8.7 9.5 8.7t9.5-8.7' stroke='%23F4EEDC' stroke-width='2.1' fill='none' stroke-linecap='round'/%3E%3Cpath d='M5 17.3h22' stroke='%23F4EEDC' stroke-width='2.1' stroke-linecap='round'/%3E%3Cpath d='M4.3 17.3q-2.3 0-2.3-2.8' stroke='%23F4EEDC' stroke-width='1.7' fill='none' stroke-linecap='round'/%3E%3Cpath d='M27.7 17.3q2.3 0 2.3-2.8' stroke='%23F4EEDC' stroke-width='1.7' fill='none' stroke-linecap='round'/%3E%3Cpath d='M12.5 13c0-2.2-2.2-2.2-2.2-4.4s2.2-2.2 2.2-4.4' stroke='%23DE9F1F' stroke-width='1.9' fill='none' stroke-linecap='round'/%3E%3Cpath d='M20.5 13c0-2.2-2.2-2.2-2.2-4.4s2.2-2.2 2.2-4.4' stroke='%23DE9F1F' stroke-width='1.9' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -208,8 +208,15 @@
   .dropzone svg{ width:26px; height:26px; color:var(--basil); margin-bottom:8px; }
   .dropzone p{ margin:0; font-size:13px; color:var(--ink-soft); }
   .dropzone p.strong{ font-weight:700; color:var(--ink); margin-bottom:2px; }
-  #imgPreviewWrap{ margin-top:14px; }
-  #imgPreviewWrap img{ width:100%; border-radius:10px; border:1px solid var(--line); max-height:180px; object-fit:cover; }
+  #imgThumbStrip{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .img-thumb{ position:relative; width:74px; height:74px; border-radius:10px; overflow:hidden; border:1px solid var(--line); }
+  .img-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .img-thumb button{
+    position:absolute; top:3px; right:3px; width:18px; height:18px; border-radius:50%;
+    background:rgba(43,33,24,0.65); color:#fff; border:none; font-size:10px; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .img-thumb button:hover{ background:var(--tomato); }
   .detect-row{ display:flex; gap:8px; margin-top:12px; }
 
   .mic-zone{ text-align:center; padding:10px 6px 4px; }
@@ -245,12 +252,25 @@
   .chip-field .label-row button{ background:none; border:none; font-size:12px; color:var(--tomato); font-weight:600; }
   .chips{ display:flex; flex-wrap:wrap; gap:7px; min-height:34px; }
   .chip{
-    display:flex; align-items:center; gap:6px; background:var(--paper-2); border:1px solid var(--line);
-    padding:6px 6px 6px 12px; border-radius:999px; font-size:13px; font-weight:600; color:var(--ink);
+    display:flex; align-items:center; gap:1px; background:var(--paper-2); border:1px solid var(--line);
+    padding:4px 4px 4px 10px; border-radius:999px; font-size:13px; font-weight:600; color:var(--ink);
   }
-  .chip button{ background:var(--paper-3); border:none; width:18px; height:18px; border-radius:50%; color:var(--ink-soft); font-size:12px; line-height:1; }
-  .chip button:hover{ background:var(--tomato); color:#fff; }
-  .chip.empty-hint{ color:var(--ink-faint); font-weight:400; background:transparent; border-style:dashed; }
+  .chip-label{ padding:0 3px; white-space:nowrap; }
+  .qty-btn{
+    width:18px; height:18px; border-radius:50%; border:none; background:transparent; color:var(--ink-soft);
+    font-size:12px; line-height:1; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .qty-btn:hover{ background:var(--paper-3); color:var(--ink); }
+  .chip-remove{
+    background:var(--paper-3); border:none; width:18px; height:18px; border-radius:50%; color:var(--ink-soft);
+    font-size:12px; line-height:1; margin-left:2px; flex:none; display:flex; align-items:center; justify-content:center;
+  }
+  .chip-remove:hover{ background:var(--tomato); color:#fff; }
+  .chip.empty-hint{ color:var(--ink-faint); font-weight:400; background:transparent; border-style:dashed; padding:6px 12px; }
+  .chip-avoid{ background:#FBEAE3; border-color:#E7B7A2; color:var(--tomato); padding-left:12px; }
+  .chip-avoid .chip-remove{ background:rgba(193,69,30,0.14); color:var(--tomato); }
+  .chip-avoid .chip-remove:hover{ background:var(--tomato); color:#fff; }
+  .optional-label{ font-weight:400; color:var(--ink-faint); font-size:13px; }
 
   .diet-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
   .diet-opt{
@@ -425,7 +445,7 @@
 <div id="loginScreen">
   <div class="login-art">
     <div class="brandmark">
-      <div class="glyph">🍲</div>
+      <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13 Q4 19 12 19 Q20 19 20 13"/><path d="M3 13 H21"/><path d="M2.5 13 Q1 13 1 11"/><path d="M21.5 13 Q23 13 23 11"/><path d="M9 10 C9 8.3 7.3 8.3 7.3 6.5 C7.3 4.8 9 4.8 9 3"/><path d="M15 10 C15 8.3 13.3 8.3 13.3 6.5 C13.3 4.8 15 4.8 15 3"/></svg></div>
       <div class="name">Simmer</div>
     </div>
     <div class="pitch">
@@ -482,7 +502,7 @@
 <div id="appScreen" class="hidden">
   <header class="topbar">
     <div class="brandmark">
-      <div class="glyph">🍲</div>
+      <div class="glyph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13 Q4 19 12 19 Q20 19 20 13"/><path d="M3 13 H21"/><path d="M2.5 13 Q1 13 1 11"/><path d="M21.5 13 Q23 13 23 11"/><path d="M9 10 C9 8.3 7.3 8.3 7.3 6.5 C7.3 4.8 9 4.8 9 3"/><path d="M15 10 C15 8.3 13.3 8.3 13.3 6.5 C13.3 4.8 15 4.8 15 3"/></svg></div>
       <div class="name">Simmer</div>
     </div>
     <div class="topbar-right">
@@ -522,16 +542,14 @@
         <div class="tabpane active" id="pane-photo">
           <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <p class="strong">Upload a photo of your ingredients</p>
-            <p>Click to browse, or drag an image here</p>
+            <p class="strong">Upload photos of your ingredients</p>
+            <p>Click to browse, or drag up to 3 images here</p>
           </div>
-          <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
-          <div id="imgPreviewWrap" class="hidden">
-            <img id="imgPreview" alt="Uploaded ingredients preview">
-            <div class="detect-row">
-              <button class="btn btn-primary btn-sm" style="flex:1" id="detectBtn" onclick="detectIngredientsFromImage()">Detect ingredients</button>
-              <button class="btn btn-ghost btn-sm" onclick="clearImage()">Remove</button>
-            </div>
+          <input type="file" id="fileInput" accept="image/*" multiple class="hidden" onchange="handleFileSelect(event)">
+          <div id="imgThumbStrip" class="img-thumb-strip hidden"></div>
+          <div class="detect-row hidden" id="detectRow">
+            <button class="btn btn-primary btn-sm" style="flex:1" id="detectBtn" onclick="detectIngredientsFromImage()">Detect ingredients</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearAllImages()">Clear photos</button>
           </div>
         </div>
 
@@ -551,10 +569,10 @@
         <!-- TYPE TAB -->
         <div class="tabpane" id="pane-type">
           <div class="type-row">
-            <input type="text" id="typeInput" placeholder="e.g. tomato, then press Enter" onkeydown="handleTypeKeydown(event)">
+            <input type="text" id="typeInput" placeholder="e.g. 2 eggs, then press Enter" onkeydown="handleTypeKeydown(event)">
             <button class="btn btn-primary btn-sm" onclick="addFromTypeInput()">Add</button>
           </div>
-          <p class="form-note" style="margin-top:10px;">Press Enter or comma to add each ingredient as a tag.</p>
+          <p class="form-note" style="margin-top:10px;">Press Enter or comma to add. Include a number (like "2 eggs") to set a quantity — or adjust it later with the +/− on each tag.</p>
         </div>
 
         <div class="chip-field">
@@ -580,6 +598,30 @@
           <button class="diet-opt" data-diet="keto">Keto</button>
           <button class="diet-opt" data-diet="gluten-free">Gluten-Free</button>
         </div>
+
+        <h2 style="margin-top:22px;">Cuisine <span class="optional-label">(optional)</span></h2>
+        <p class="sub">Steer the recipes toward a style of cooking.</p>
+        <div class="diet-grid" id="cuisineGrid">
+          <button class="diet-opt active" data-cuisine="any">Any</button>
+          <button class="diet-opt" data-cuisine="italian">Italian</button>
+          <button class="diet-opt" data-cuisine="indian">Indian</button>
+          <button class="diet-opt" data-cuisine="mexican">Mexican</button>
+          <button class="diet-opt" data-cuisine="chinese">Chinese</button>
+          <button class="diet-opt" data-cuisine="thai">Thai</button>
+          <button class="diet-opt" data-cuisine="mediterranean">Mediterranean</button>
+          <button class="diet-opt" data-cuisine="japanese">Japanese</button>
+          <button class="diet-opt" data-cuisine="american">American</button>
+        </div>
+
+        <h2 style="margin-top:22px;">Avoid <span class="optional-label">(allergies or dislikes)</span></h2>
+        <div class="type-row">
+          <input type="text" id="excludeInput" placeholder="e.g. peanuts, then press Enter" onkeydown="handleExcludeKeydown(event)">
+          <button class="btn btn-outline btn-sm" onclick="addFromExcludeInput()">Add</button>
+        </div>
+        <div class="chips" id="excludeChipsContainer" style="margin-top:10px; margin-bottom:18px;">
+          <span class="chip empty-hint">None — add anything to avoid</span>
+        </div>
+
         <button class="btn btn-primary generate-btn" id="generateBtn" onclick="generateRecipes()" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.6-6.3 4.6 2.3-7.2-6-4.6h7.6z"/></svg>
           Generate recipes
@@ -634,10 +676,11 @@
    STATE
    ============================================================ */
 const APP = {
-  ingredients: [],       // array of strings
+  ingredients: [],       // array of { name, qty }
   diet: 'any',
-  imageBase64: null,
-  imageMediaType: null,
+  cuisine: 'any',
+  exclusions: [],        // array of strings (allergies/dislikes)
+  images: [],             // array of { base64, mediaType, previewUrl }
   recognition: null,
   listening: false,
   recipes: [],                  // current generation
@@ -744,7 +787,10 @@ function logout(){
   APP.recipes = [];
   APP.savedRecipes = [];
   APP.history = [];
-  clearImage();
+  APP.exclusions = [];
+  APP.diet = 'any';
+  APP.cuisine = 'any';
+  clearAllImages();
   $('#appScreen').classList.add('hidden');
   $('#loginScreen').classList.remove('hidden');
   $('#loginForm').reset();
@@ -760,7 +806,13 @@ function enterApp(){
   $('#appScreen').classList.remove('hidden');
   loadSavedRecipes();
   loadHistory();
+  APP.exclusions = [];
+  APP.diet = 'any';
+  APP.cuisine = 'any';
+  $$('#dietGrid .diet-opt').forEach(b => b.classList.toggle('active', b.dataset.diet === 'any'));
+  $$('#cuisineGrid .diet-opt').forEach(b => b.classList.toggle('active', b.dataset.cuisine === 'any'));
   renderChips();
+  renderExcludeChips();
   initResultsArea();
 }
 
@@ -781,22 +833,45 @@ function setInputTab(tab){
 }
 
 /* ============================================================
-   INGREDIENT CHIPS
+   INGREDIENT CHIPS (quantity-aware)
    ============================================================ */
 function normalizeIngredient(s){
-  return s.trim().toLowerCase().replace(/\s+/g,' ').replace(/^[.,-]+|[.,-]+$/g,'');
+  return String(s).trim().toLowerCase().replace(/\s+/g,' ').replace(/^[.,-]+|[.,-]+$/g,'');
 }
 
 function addIngredient(raw){
-  const name = normalizeIngredient(raw);
-  if(!name || name.length > 40) return;
-  if(APP.ingredients.includes(name)) return;
-  APP.ingredients.push(name);
+  let name = normalizeIngredient(raw);
+  if(!name || name.length > 60) return;
+
+  let qty = 0;
+  const parsed = parseLeadingNumber(name);
+  if(parsed && parsed.rest.trim()){
+    const n = Math.round(parsed.value);
+    if(n > 0 && n < 100){
+      qty = n;
+      name = normalizeIngredient(parsed.rest);
+    }
+  }
+  if(!name) return;
+
+  const existing = APP.ingredients.find(i => i.name === name);
+  if(existing){
+    if(qty) existing.qty = qty;
+  } else {
+    APP.ingredients.push({ name, qty });
+  }
+  renderChips();
+}
+
+function bumpQty(name, delta){
+  const ing = APP.ingredients.find(i => i.name === name);
+  if(!ing) return;
+  ing.qty = Math.max(0, (ing.qty || 0) + delta);
   renderChips();
 }
 
 function removeIngredient(name){
-  APP.ingredients = APP.ingredients.filter(i => i !== name);
+  APP.ingredients = APP.ingredients.filter(i => i.name !== name);
   renderChips();
 }
 
@@ -805,20 +880,45 @@ function clearAllIngredients(){
   renderChips();
 }
 
+function ingredientsForPrompt(){
+  return APP.ingredients.map(i => i.qty ? `${i.qty} ${i.name}` : i.name);
+}
+
 function renderChips(){
   const wrap = $('#chipsContainer');
   wrap.innerHTML = '';
   if(APP.ingredients.length === 0){
     wrap.innerHTML = '<span class="chip empty-hint">No ingredients yet — add some above</span>';
   } else {
-    APP.ingredients.forEach(name => {
+    APP.ingredients.forEach(ing => {
       const chip = document.createElement('span');
       chip.className = 'chip';
-      chip.innerHTML = `<span>${escapeHtml(name)}</span>`;
-      const btn = document.createElement('button');
-      btn.textContent = '✕';
-      btn.onclick = () => removeIngredient(name);
-      chip.appendChild(btn);
+
+      const minus = document.createElement('button');
+      minus.className = 'qty-btn';
+      minus.textContent = '−';
+      minus.title = 'Decrease quantity';
+      minus.onclick = () => bumpQty(ing.name, -1);
+
+      const label = document.createElement('span');
+      label.className = 'chip-label';
+      label.textContent = ing.qty ? `${ing.qty}× ${ing.name}` : ing.name;
+
+      const plus = document.createElement('button');
+      plus.className = 'qty-btn';
+      plus.textContent = '+';
+      plus.title = 'Increase quantity';
+      plus.onclick = () => bumpQty(ing.name, 1);
+
+      const rm = document.createElement('button');
+      rm.className = 'chip-remove';
+      rm.textContent = '✕';
+      rm.onclick = () => removeIngredient(ing.name);
+
+      chip.appendChild(minus);
+      chip.appendChild(label);
+      chip.appendChild(plus);
+      chip.appendChild(rm);
       wrap.appendChild(chip);
     });
   }
@@ -850,19 +950,73 @@ function addFromTypeInput(){
 }
 
 /* ============================================================
-   PHOTO UPLOAD + DETECTION
+   EXCLUSIONS (allergies / dislikes)
+   ============================================================ */
+function addExclusion(raw){
+  const name = normalizeIngredient(raw);
+  if(!name || name.length > 40) return;
+  if(APP.exclusions.includes(name)) return;
+  APP.exclusions.push(name);
+  renderExcludeChips();
+}
+function removeExclusion(name){
+  APP.exclusions = APP.exclusions.filter(e => e !== name);
+  renderExcludeChips();
+}
+function renderExcludeChips(){
+  const wrap = $('#excludeChipsContainer');
+  wrap.innerHTML = '';
+  if(APP.exclusions.length === 0){
+    wrap.innerHTML = '<span class="chip empty-hint">None — add anything to avoid</span>';
+    return;
+  }
+  APP.exclusions.forEach(name => {
+    const chip = document.createElement('span');
+    chip.className = 'chip chip-avoid';
+    const label = document.createElement('span');
+    label.className = 'chip-label';
+    label.textContent = name;
+    const rm = document.createElement('button');
+    rm.className = 'chip-remove';
+    rm.textContent = '✕';
+    rm.onclick = () => removeExclusion(name);
+    chip.appendChild(label);
+    chip.appendChild(rm);
+    wrap.appendChild(chip);
+  });
+}
+function handleExcludeKeydown(e){
+  if(e.key === 'Enter' || e.key === ','){
+    e.preventDefault();
+    addFromExcludeInput();
+  }
+}
+function addFromExcludeInput(){
+  const input = $('#excludeInput');
+  const raw = input.value.replace(/,$/,'');
+  if(raw.trim()){
+    raw.split(',').forEach(part => addExclusion(part));
+  }
+  input.value = '';
+  input.focus();
+}
+
+/* ============================================================
+   PHOTO UPLOAD + DETECTION (multi-photo)
    ============================================================ */
 const dropzone = $('#dropzone');
+const MAX_PHOTOS = 3;
 ['dragover','dragenter'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
 ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
 dropzone.addEventListener('drop', e => {
-  const file = e.dataTransfer.files[0];
-  if(file) loadImageFile(file);
+  const files = Array.from(e.dataTransfer.files || []);
+  files.forEach(f => loadImageFile(f));
 });
 
 function handleFileSelect(e){
-  const file = e.target.files[0];
-  if(file) loadImageFile(file);
+  const files = Array.from(e.target.files || []);
+  files.forEach(f => loadImageFile(f));
+  e.target.value = ''; // allow re-selecting the same file later
 }
 
 function loadImageFile(file){
@@ -870,27 +1024,57 @@ function loadImageFile(file){
     showToast('Please choose an image file', true);
     return;
   }
+  if(APP.images.length >= MAX_PHOTOS){
+    showToast(`You can add up to ${MAX_PHOTOS} photos at a time`, true);
+    return;
+  }
   const reader = new FileReader();
   reader.onload = () => {
     const dataUrl = reader.result;
     const [meta, b64] = dataUrl.split(',');
-    APP.imageMediaType = (meta.match(/data:(.*?);base64/) || [,'image/jpeg'])[1];
-    APP.imageBase64 = b64;
-    $('#imgPreview').src = dataUrl;
-    $('#imgPreviewWrap').classList.remove('hidden');
+    const mediaType = (meta.match(/data:(.*?);base64/) || [,'image/jpeg'])[1];
+    APP.images.push({ base64: b64, mediaType, previewUrl: dataUrl });
+    renderImageThumbs();
   };
   reader.readAsDataURL(file);
 }
 
-function clearImage(){
-  APP.imageBase64 = null;
-  APP.imageMediaType = null;
+function renderImageThumbs(){
+  const strip = $('#imgThumbStrip');
+  const row = $('#detectRow');
+  if(APP.images.length === 0){
+    strip.classList.add('hidden');
+    strip.innerHTML = '';
+    row.classList.add('hidden');
+    return;
+  }
+  strip.classList.remove('hidden');
+  row.classList.remove('hidden');
+  strip.innerHTML = '';
+  APP.images.forEach((img, idx) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'img-thumb';
+    const im = document.createElement('img');
+    im.src = img.previewUrl;
+    im.alt = 'Uploaded ingredients photo';
+    const rm = document.createElement('button');
+    rm.textContent = '✕';
+    rm.title = 'Remove photo';
+    rm.onclick = () => { APP.images.splice(idx, 1); renderImageThumbs(); };
+    thumb.appendChild(im);
+    thumb.appendChild(rm);
+    strip.appendChild(thumb);
+  });
+}
+
+function clearAllImages(){
+  APP.images = [];
   $('#fileInput').value = '';
-  $('#imgPreviewWrap').classList.add('hidden');
+  renderImageThumbs();
 }
 
 async function detectIngredientsFromImage(){
-  if(!APP.imageBase64){ showToast('Upload a photo first', true); return; }
+  if(APP.images.length === 0){ showToast('Upload at least one photo first', true); return; }
 
   const btn = $('#detectBtn');
   const original = btn.textContent;
@@ -898,26 +1082,30 @@ async function detectIngredientsFromImage(){
   btn.disabled = true;
 
   try{
+    const imageBlocks = APP.images.map(img => ({
+      type: 'image_url',
+      image_url: { url: `data:${img.mediaType};base64,${img.base64}` }
+    }));
     const text = await callAI({
       model: MODEL_VISION,
-      maxTokens: 500,
+      maxTokens: 600,
       jsonMode: true,
-      system: "You are a precise food-ingredient identifier. Look at the photo and list only actual food ingredients you can see. Respond with ONLY valid JSON in the exact shape {\"ingredients\": [\"ingredient one\", \"ingredient two\"]} and nothing else — no markdown, no commentary.",
+      system: "You are a precise food-ingredient identifier. Look at the photo(s) and list only actual food ingredients you can see, merging duplicates across photos into one list. Respond with ONLY valid JSON in the exact shape {\"ingredients\": [\"ingredient one\", \"ingredient two\"]} and nothing else — no markdown, no commentary.",
       messages: [{
         role: 'user',
         content: [
-          { type:'text', text:'Identify the distinct food ingredients visible in this image.' },
-          { type:'image_url', image_url:{ url: `data:${APP.imageMediaType};base64,${APP.imageBase64}` } }
+          { type:'text', text: `Identify the distinct food ingredients visible across these ${APP.images.length} photo${APP.images.length>1?'s':''}.` },
+          ...imageBlocks
         ]
       }]
     });
     const parsed = extractJson(text);
     const list = parsed.ingredients || [];
     if(list.length === 0){
-      showToast('No ingredients detected — try another photo or add manually', true);
+      showToast('No ingredients detected — try clearer photos or add manually', true);
     } else {
       list.forEach(addIngredient);
-      showToast(`Added ${list.length} ingredient${list.length>1?'s':''} from photo`);
+      showToast(`Added ${list.length} ingredient${list.length>1?'s':''} from ${APP.images.length} photo${APP.images.length>1?'s':''}`);
     }
   }catch(err){
     handleApiError(err);
@@ -1004,14 +1192,22 @@ function addTranscriptAsIngredients(){
 }
 
 /* ============================================================
-   DIET SELECTOR
+   DIET & CUISINE SELECTORS
    ============================================================ */
 $('#dietGrid').addEventListener('click', (e) => {
   const btn = e.target.closest('.diet-opt');
   if(!btn) return;
-  $$('.diet-opt').forEach(b => b.classList.remove('active'));
+  $$('#dietGrid .diet-opt').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   APP.diet = btn.dataset.diet;
+});
+
+$('#cuisineGrid').addEventListener('click', (e) => {
+  const btn = e.target.closest('.diet-opt');
+  if(!btn) return;
+  $$('#cuisineGrid .diet-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  APP.cuisine = btn.dataset.cuisine;
 });
 
 /* ============================================================
@@ -1087,11 +1283,15 @@ async function generateRecipes(){
   $('#generateBtn').disabled = true;
 
   try{
-    const dietLabel = $('.diet-opt.active').textContent.trim();
-    const prompt = `Available ingredients: ${APP.ingredients.join(', ')}.
+    const dietLabel = $('#dietGrid .diet-opt.active').textContent.trim();
+    const cuisineLabel = $('#cuisineGrid .diet-opt.active').textContent.trim();
+    const ingredientLines = ingredientsForPrompt();
+    const prompt = `Available ingredients: ${ingredientLines.join(', ')}.
 Dietary preference: ${dietLabel}.
+${cuisineLabel !== 'Any' ? `Cuisine preference: lean toward ${cuisineLabel} cuisine.` : ''}
+${APP.exclusions.length ? `Strictly avoid these ingredients entirely (allergies/dislikes): ${APP.exclusions.join(', ')}.` : ''}
 
-Suggest 3 distinct recipe options that primarily use these ingredients (a few common pantry staples like oil, salt, water, spices may be assumed available). Respect the dietary preference strictly. For each recipe include precise ingredient quantities (assume it serves 2 unless noted), clear numbered preparation steps, and a rough per-serving nutrition estimate.
+Suggest 3 distinct recipe options that primarily use these ingredients (a few common pantry staples like oil, salt, water, spices may be assumed available). Where a quantity is given for an ingredient (e.g. "2 eggs"), treat that as roughly what's on hand and don't assume more is available. Respect the dietary preference and any avoid-list strictly. For each recipe include precise ingredient quantities (assume it serves 2 unless noted), clear numbered preparation steps, and a rough per-serving nutrition estimate.
 
 Respond with ONLY valid JSON in exactly this shape, no markdown fences, no commentary:
 {
@@ -1112,7 +1312,7 @@ Respond with ONLY valid JSON in exactly this shape, no markdown fences, no comme
     APP.history.unshift({
       id: makeId(),
       timestamp: Date.now(),
-      ingredients: [...APP.ingredients],
+      ingredients: ingredientLines,
       diet: dietLabel,
       recipes: APP.recipes
     });
@@ -1262,10 +1462,13 @@ async function regenerateRecipe(id){
   }
 
   try{
-    const dietLabel = $('.diet-opt.active').textContent.trim();
+    const dietLabel = $('#dietGrid .diet-opt.active').textContent.trim();
+    const cuisineLabel = $('#cuisineGrid .diet-opt.active').textContent.trim();
     const otherTitles = APP.recipes.filter(r => r.id !== id).map(r => r.title).join(', ') || 'none yet';
-    const prompt = `Available ingredients: ${APP.ingredients.join(', ')}.
+    const prompt = `Available ingredients: ${ingredientsForPrompt().join(', ')}.
 Dietary preference: ${dietLabel}.
+${cuisineLabel !== 'Any' ? `Cuisine preference: lean toward ${cuisineLabel} cuisine.` : ''}
+${APP.exclusions.length ? `Strictly avoid these ingredients entirely (allergies/dislikes): ${APP.exclusions.join(', ')}.` : ''}
 
 Suggest ONE new recipe, different from these already-suggested dishes: ${otherTitles}. Use precise ingredient quantities (assume it serves 2 unless noted), clear numbered preparation steps, and a rough per-serving nutrition estimate.
 
