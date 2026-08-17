@@ -1387,9 +1387,9 @@ Respond with ONLY valid JSON in exactly this shape, no markdown fences, no comme
 
     const text = await callAI({
       model: MODEL_TEXT,
-      maxTokens: 4000,
+      maxTokens: 5500,
       jsonMode: true,
-      system: 'You are an expert chef and recipe developer who writes precise, home-cook-friendly recipes with realistic nutrition estimates. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
+      system: 'You are an expert chef and recipe developer who writes precise, home-cook-friendly recipes with realistic nutrition estimates. Keep step text concise — one clear sentence per step. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
       messages: [{ role: 'user', content: prompt }]
     });
 
@@ -1564,9 +1564,9 @@ Respond with ONLY valid JSON in exactly this shape, no markdown fences, no comme
 
     const text = await callAI({
       model: MODEL_TEXT,
-      maxTokens: 1800,
+      maxTokens: 2400,
       jsonMode: true,
-      system: 'You are an expert chef and recipe developer. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
+      system: 'You are an expert chef and recipe developer. Keep step text concise — one clear sentence per step. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
       messages: [{ role: 'user', content: prompt }]
     });
 
