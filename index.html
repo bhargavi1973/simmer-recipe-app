@@ -366,6 +366,43 @@
   }
   .modal-heart.active{ background:var(--tomato); border-color:var(--tomato); color:#fff; }
 
+  .step-timer-badge{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-faint); margin-left:6px; white-space:nowrap; }
+
+  /* meal plan */
+  .plan-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+  .plan-tab{ padding:8px 14px; border-radius:999px; border:1.5px solid var(--line); background:var(--paper); font-size:13px; font-weight:700; color:var(--ink-soft); }
+  .plan-tab.active{ background:var(--basil); border-color:var(--basil); color:#F4EEDC; }
+  .plan-day-card{ border:1px solid var(--line); border-radius:14px; padding:18px; background:var(--paper-2); }
+
+  /* cooking mode (full-screen) */
+  .cook-mode{ position:fixed; inset:0; background:var(--paper); z-index:300; display:flex; flex-direction:column; }
+  .cook-head{ display:flex; align-items:center; justify-content:space-between; padding:16px 22px; border-bottom:1px solid var(--line); }
+  .cook-head .close-x{ position:static; background:var(--paper-2); border:1px solid var(--line); color:var(--ink-soft); }
+  .cook-title{ font-family:'Fraunces',serif; font-weight:600; font-size:17px; color:var(--ink); }
+  .cook-progress{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--ink-soft); }
+  .cook-body{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px 24px; gap:24px; overflow-y:auto; }
+  .cook-step-num{
+    width:54px; height:54px; border-radius:50%; background:var(--saffron); color:var(--basil-dark);
+    font-weight:800; font-size:21px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace;
+  }
+  .cook-step-text{ font-family:'Fraunces',serif; font-size:clamp(22px,3.4vw,32px); font-weight:500; line-height:1.45; max-width:680px; color:var(--ink); }
+  .cook-timer{ display:flex; flex-direction:column; align-items:center; }
+  .cook-timer-display{ font-family:'IBM Plex Mono',monospace; font-size:42px; font-weight:700; color:var(--basil); }
+  .cook-timer-actions{ display:flex; gap:10px; justify-content:center; margin-top:10px; }
+  .cook-nav{ display:flex; justify-content:space-between; gap:12px; padding:18px 22px; border-top:1px solid var(--line); }
+  .cook-nav .btn{ flex:1; max-width:220px; }
+
+  /* print */
+  @media print{
+    body > *:not(#recipeModalBackdrop){ display:none !important; }
+    #recipeModalBackdrop{ position:static !important; background:none !important; padding:0 !important; display:block !important; }
+    .modal{ box-shadow:none !important; max-width:100% !important; }
+    .close-x, .modal-heart, .servings-stepper button, .modal-actions{ display:none !important; }
+    .modal-head{ background:none !important; color:var(--ink) !important; }
+    .modal-head p, .modal-head .meta-row, .tagpill.cuisine{ color:var(--ink-soft) !important; }
+    .tagpill.veg, .tagpill.nonveg{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+
   /* modal */
   .modal-backdrop{
     position:fixed; inset:0; background:rgba(43,33,24,0.55); backdrop-filter:blur(2px);
@@ -637,6 +674,7 @@
           <button class="rtab" id="tabSaved" onclick="setResultsView('saved')">Saved <span id="savedCountLabel">(0)</span></button>
         </div>
         <div class="results-head-right">
+          <button class="btn btn-ghost btn-sm" onclick="openMealPlanModal()">Meal Plan</button>
           <button class="btn btn-ghost btn-sm" onclick="openHistoryModal()">History</button>
           <span class="count" id="resultsCount"></span>
         </div>
@@ -669,6 +707,42 @@
   </div>
 </div>
 
+<!-- ============ MEAL PLAN MODAL ============ -->
+<div id="mealPlanModalBackdrop" class="modal-backdrop hidden" onclick="if(event.target===this) closeMealPlanModal()">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head" style="padding:22px 26px 18px;">
+      <button class="close-x" onclick="closeMealPlanModal()">✕</button>
+      <h2 style="font-size:21px; margin:0 0 6px;">Meal plan</h2>
+      <p style="font-size:13px; margin:0;">A few days of recipes from your ingredients, with one combined shopping list.</p>
+    </div>
+    <div class="modal-body-simple" id="mealPlanModalBody" style="max-height:64vh; overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- ============ COOKING MODE (full-screen) ============ -->
+<div id="cookModeBackdrop" class="cook-mode hidden">
+  <div class="cook-head">
+    <button class="close-x" onclick="exitCookingMode()">✕</button>
+    <div class="cook-title" id="cookRecipeTitle"></div>
+    <div class="cook-progress" id="cookProgress"></div>
+  </div>
+  <div class="cook-body">
+    <div class="cook-step-num" id="cookStepNum"></div>
+    <div class="cook-step-text" id="cookStepText"></div>
+    <div class="cook-timer hidden" id="cookTimerWrap">
+      <div class="cook-timer-display" id="cookTimerDisplay">00:00</div>
+      <div class="cook-timer-actions">
+        <button class="btn btn-outline btn-sm" id="cookTimerToggle" onclick="toggleCookTimer()">Start timer</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetCookTimer()">Reset</button>
+      </div>
+    </div>
+  </div>
+  <div class="cook-nav">
+    <button class="btn btn-ghost" id="cookPrevBtn" onclick="cookPrev()">← Back</button>
+    <button class="btn btn-primary" id="cookNextBtn" onclick="cookNext()">Next →</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -690,6 +764,14 @@ const APP = {
   resultsView: 'generated',     // 'generated' | 'saved'
   activeModalRecipeId: null,
   activeModalServings: null,
+  // cooking mode
+  cookingStepIndex: 0,
+  cookTimeLeft: 0,
+  cookTimerInterval: null,
+  // meal planning
+  mealPlan: null,              // null | 'loading' | { days: [{ day, recipe }] }
+  mealPlanDaysChoice: 3,
+  mealPlanActiveTab: 1,
 };
 
 const $ = sel => document.querySelector(sel);
@@ -790,6 +872,10 @@ function logout(){
   APP.exclusions = [];
   APP.diet = 'any';
   APP.cuisine = 'any';
+  APP.mealPlan = null;
+  APP.mealPlanDaysChoice = 3;
+  stopCookTimer();
+  $('#cookModeBackdrop').classList.add('hidden');
   clearAllImages();
   $('#appScreen').classList.add('hidden');
   $('#loginScreen').classList.remove('hidden');
@@ -1271,10 +1357,11 @@ const RECIPE_SCHEMA_FIELDS = `{
       "servings": 2,
       "difficulty": "Easy" | "Medium" | "Hard",
       "ingredients": [ { "item": "string", "quantity": "string" } ],
-      "steps": [ "string" ],
+      "steps": [ { "text": "string", "timerSeconds": number-or-null } ],
       "searchQuery": "a short, specific search phrase to find this exact dish online",
       "nutrition": { "calories": number, "protein": "e.g. 18g", "carbs": "e.g. 40g", "fat": "e.g. 12g" }
     }`;
+const RECIPE_SCHEMA_NOTE = 'For each step, set "timerSeconds" to a realistic duration in seconds ONLY when that step involves waiting, simmering, boiling, baking, resting, marinating, or chilling — otherwise set it to null.';
 
 async function generateRecipes(){
   if(APP.ingredients.length === 0){ showToast('Add at least one ingredient first', true); return; }
@@ -1291,7 +1378,7 @@ Dietary preference: ${dietLabel}.
 ${cuisineLabel !== 'Any' ? `Cuisine preference: lean toward ${cuisineLabel} cuisine.` : ''}
 ${APP.exclusions.length ? `Strictly avoid these ingredients entirely (allergies/dislikes): ${APP.exclusions.join(', ')}.` : ''}
 
-Suggest 3 distinct recipe options that primarily use these ingredients (a few common pantry staples like oil, salt, water, spices may be assumed available). Where a quantity is given for an ingredient (e.g. "2 eggs"), treat that as roughly what's on hand and don't assume more is available. Respect the dietary preference and any avoid-list strictly. For each recipe include precise ingredient quantities (assume it serves 2 unless noted), clear numbered preparation steps, and a rough per-serving nutrition estimate.
+Suggest 3 distinct recipe options that primarily use these ingredients (a few common pantry staples like oil, salt, water, spices may be assumed available). Where a quantity is given for an ingredient (e.g. "2 eggs"), treat that as roughly what's on hand and don't assume more is available. Respect the dietary preference and any avoid-list strictly. For each recipe include precise ingredient quantities (assume it serves 2 unless noted), clear numbered preparation steps, and a rough per-serving nutrition estimate. ${RECIPE_SCHEMA_NOTE}
 
 Respond with ONLY valid JSON in exactly this shape, no markdown fences, no commentary:
 {
@@ -1470,7 +1557,7 @@ Dietary preference: ${dietLabel}.
 ${cuisineLabel !== 'Any' ? `Cuisine preference: lean toward ${cuisineLabel} cuisine.` : ''}
 ${APP.exclusions.length ? `Strictly avoid these ingredients entirely (allergies/dislikes): ${APP.exclusions.join(', ')}.` : ''}
 
-Suggest ONE new recipe, different from these already-suggested dishes: ${otherTitles}. Use precise ingredient quantities (assume it serves 2 unless noted), clear numbered preparation steps, and a rough per-serving nutrition estimate.
+Suggest ONE new recipe, different from these already-suggested dishes: ${otherTitles}. Use precise ingredient quantities (assume it serves 2 unless noted), clear numbered preparation steps, and a rough per-serving nutrition estimate. ${RECIPE_SCHEMA_NOTE}
 
 Respond with ONLY valid JSON in exactly this shape, no markdown fences, no commentary:
 { "recipe": ${RECIPE_SCHEMA_FIELDS} }`;
@@ -1577,16 +1664,30 @@ function scaleIngredientQty(qtyStr, ratio){
 /* ============================================================
    RECIPE DETAIL MODAL
    ============================================================ */
+function normalizedSteps(r){
+  return (r && r.steps || []).map(s => typeof s === 'string' ? { text: s, timerSeconds: null } : s);
+}
+
+function formatSeconds(sec){
+  if(!sec || sec <= 0) return '';
+  if(sec < 60) return `${sec}s`;
+  const m = Math.round(sec / 60);
+  return `${m} min`;
+}
+
 function findActiveModalRecipe(){
   return APP.currentDisplayedRecipes.find(x => x.id === APP.activeModalRecipeId)
     || APP.savedRecipes.find(x => x.id === APP.activeModalRecipeId)
+    || (APP.mealPlan && APP.mealPlan !== 'loading'
+        ? APP.mealPlan.days.map(d => d.recipe).find(x => x.id === APP.activeModalRecipeId)
+        : null)
     || null;
 }
 
 function openRecipeModal(id){
-  const r = APP.currentDisplayedRecipes.find(x => x.id === id);
-  if(!r) return;
   APP.activeModalRecipeId = id;
+  const r = findActiveModalRecipe();
+  if(!r){ APP.activeModalRecipeId = null; return; }
   APP.activeModalServings = r.servings || 2;
   renderModalBody();
   $('#recipeModalBackdrop').classList.remove('hidden');
@@ -1619,7 +1720,10 @@ function renderModalBody(){
     <div class="r-item"><span>${escapeHtml(i.item||'')}</span><span class="qty">${escapeHtml(i.quantity||'')}</span></div>
   `).join('');
 
-  const stepsHtml = (r.steps||[]).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+  const steps = normalizedSteps(r);
+  const stepsHtml = steps.map(s => `
+    <li>${escapeHtml(s.text)}${s.timerSeconds ? ` <span class="step-timer-badge">⏲ ${formatSeconds(s.timerSeconds)}</span>` : ''}</li>
+  `).join('');
 
   const searchQuery = r.searchQuery || (r.title + ' recipe');
   const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(searchQuery);
@@ -1671,16 +1775,70 @@ function renderModalBody(){
           <button class="btn btn-primary btn-sm" style="flex:1" onclick="downloadShoppingList()">⬇ Download list</button>
         </div>
         <div class="modal-actions">
-          <a class="btn btn-outline btn-sm" style="flex:1; text-decoration:none;" href="${searchUrl}" target="_blank" rel="noopener">🔗 Find this recipe online</a>
+          <a class="btn btn-outline btn-sm" style="flex:1; text-decoration:none;" href="${searchUrl}" target="_blank" rel="noopener">🔗 Find online</a>
+          <button class="btn btn-outline btn-sm" style="flex:1" onclick="shareRecipe()">📤 Share</button>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost btn-sm" style="flex:1" onclick="printRecipe()">🖨 Print</button>
         </div>
         ${nutritionHtml}
       </div>
       <div>
-        <h4>Preparation</h4>
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px;">
+          <h4 style="margin:0;">Preparation</h4>
+          <button class="btn btn-primary btn-sm" onclick="startCookingMode()">▶ Cook</button>
+        </div>
         <ol class="steps-list">${stepsHtml}</ol>
       </div>
     </div>
   `;
+}
+
+function shareRecipe(){
+  const r = findActiveModalRecipe();
+  if(!r) return;
+  const base = r.servings || 2;
+  const current = APP.activeModalServings || base;
+  const ratio = current / base;
+  const ingLines = (r.ingredients||[]).map(i => `- ${scaleIngredientQty(i.quantity||'', ratio)} ${i.item||''}`.trim());
+  const stepLines = normalizedSteps(r).map((s,i) => `${i+1}. ${s.text}`);
+  const text = [
+    r.title || 'Recipe',
+    r.description || '',
+    '',
+    `Serves ${current}`,
+    '',
+    'Ingredients:',
+    ...ingLines,
+    '',
+    'Steps:',
+    ...stepLines,
+    '',
+    'Made with Simmer'
+  ].join('\n');
+
+  if(navigator.share){
+    navigator.share({ title: r.title || 'Recipe', text }).catch(err => {
+      if(err && err.name === 'AbortError') return;
+      copyRecipeText(text);
+    });
+  } else {
+    copyRecipeText(text);
+  }
+}
+
+function copyRecipeText(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('Recipe copied to clipboard'))
+      .catch(() => showToast('Could not copy — try downloading instead', true));
+  } else {
+    showToast('Sharing is not supported in this browser', true);
+  }
+}
+
+function printRecipe(){
+  window.print();
 }
 
 function downloadShoppingList(){
@@ -1720,6 +1878,256 @@ function downloadShoppingList(){
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast('Shopping list downloaded');
+}
+
+/* ============================================================
+   COOKING MODE — full-screen step-by-step with per-step timers
+   ============================================================ */
+function startCookingMode(){
+  const r = findActiveModalRecipe();
+  if(!r || normalizedSteps(r).length === 0){ showToast('This recipe has no steps to cook through', true); return; }
+  APP.cookingStepIndex = 0;
+  stopCookTimer();
+  $('#cookRecipeTitle').textContent = r.title || '';
+  renderCookStep();
+  $('#cookModeBackdrop').classList.remove('hidden');
+}
+
+function exitCookingMode(){
+  stopCookTimer();
+  $('#cookModeBackdrop').classList.add('hidden');
+}
+
+function renderCookStep(){
+  const r = findActiveModalRecipe();
+  if(!r) return;
+  const steps = normalizedSteps(r);
+  const idx = APP.cookingStepIndex;
+  const step = steps[idx];
+
+  $('#cookStepNum').textContent = idx + 1;
+  $('#cookProgress').textContent = `Step ${idx + 1} of ${steps.length}`;
+  $('#cookStepText').textContent = step.text;
+  $('#cookPrevBtn').disabled = idx === 0;
+  $('#cookNextBtn').textContent = idx === steps.length - 1 ? 'Done ✓' : 'Next →';
+
+  stopCookTimer();
+  const timerWrap = $('#cookTimerWrap');
+  if(step.timerSeconds){
+    timerWrap.classList.remove('hidden');
+    APP.cookTimeLeft = step.timerSeconds;
+    updateTimerDisplay();
+  } else {
+    timerWrap.classList.add('hidden');
+  }
+}
+
+function cookNext(){
+  const r = findActiveModalRecipe();
+  if(!r) return;
+  const steps = normalizedSteps(r);
+  if(APP.cookingStepIndex >= steps.length - 1){
+    exitCookingMode();
+    showToast('Enjoy your meal! 🍽');
+    return;
+  }
+  APP.cookingStepIndex++;
+  renderCookStep();
+}
+
+function cookPrev(){
+  if(APP.cookingStepIndex === 0) return;
+  APP.cookingStepIndex--;
+  renderCookStep();
+}
+
+function updateTimerDisplay(){
+  const m = Math.floor(APP.cookTimeLeft / 60).toString().padStart(2, '0');
+  const s = (APP.cookTimeLeft % 60).toString().padStart(2, '0');
+  $('#cookTimerDisplay').textContent = `${m}:${s}`;
+}
+
+function toggleCookTimer(){
+  if(APP.cookTimerInterval){
+    stopCookTimer();
+    return;
+  }
+  if(APP.cookTimeLeft <= 0) return;
+  $('#cookTimerToggle').textContent = 'Pause';
+  APP.cookTimerInterval = setInterval(() => {
+    APP.cookTimeLeft = Math.max(0, APP.cookTimeLeft - 1);
+    updateTimerDisplay();
+    if(APP.cookTimeLeft === 0){
+      stopCookTimer();
+      showToast('Timer done!');
+    }
+  }, 1000);
+}
+
+function stopCookTimer(){
+  if(APP.cookTimerInterval){
+    clearInterval(APP.cookTimerInterval);
+    APP.cookTimerInterval = null;
+  }
+  const btn = $('#cookTimerToggle');
+  if(btn) btn.textContent = 'Start timer';
+}
+
+function resetCookTimer(){
+  const r = findActiveModalRecipe();
+  if(!r) return;
+  const steps = normalizedSteps(r);
+  const step = steps[APP.cookingStepIndex];
+  stopCookTimer();
+  APP.cookTimeLeft = step && step.timerSeconds ? step.timerSeconds : 0;
+  updateTimerDisplay();
+}
+
+/* ============================================================
+   MEAL PLANNING
+   ============================================================ */
+function openMealPlanModal(){
+  if(APP.ingredients.length === 0){ showToast('Add at least one ingredient first', true); return; }
+  renderMealPlanModal();
+  $('#mealPlanModalBackdrop').classList.remove('hidden');
+}
+function closeMealPlanModal(){
+  $('#mealPlanModalBackdrop').classList.add('hidden');
+}
+function setMealPlanDays(n){
+  APP.mealPlanDaysChoice = n;
+  renderMealPlanModal();
+}
+function setMealPlanActiveDay(n){
+  APP.mealPlanActiveTab = n;
+  renderMealPlanModal();
+}
+function clearMealPlan(){
+  APP.mealPlan = null;
+  renderMealPlanModal();
+}
+
+function renderMealPlanModal(){
+  const body = $('#mealPlanModalBody');
+
+  if(APP.mealPlan === 'loading'){
+    body.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Planning your week…</p></div>`;
+    return;
+  }
+
+  if(!APP.mealPlan){
+    body.innerHTML = `
+      <p class="sub" style="margin-bottom:14px;">Uses your current ingredients, diet, cuisine, and avoid list. One main recipe per day, plus one combined shopping list.</p>
+      <div class="diet-grid" style="margin-bottom:18px;">
+        ${[3,4,5].map(n => `<button class="diet-opt ${APP.mealPlanDaysChoice===n?'active':''}" onclick="setMealPlanDays(${n})">${n} days</button>`).join('')}
+      </div>
+      <button class="btn btn-primary" style="width:100%;" onclick="generateMealPlan()">Generate ${APP.mealPlanDaysChoice}-day plan</button>
+    `;
+    return;
+  }
+
+  const days = APP.mealPlan.days;
+  const activeDay = days.find(d => d.day === APP.mealPlanActiveTab) || days[0];
+  body.innerHTML = `
+    <div class="plan-tabs">
+      ${days.map(d => `<button class="plan-tab ${d.day===activeDay.day?'active':''}" onclick="setMealPlanActiveDay(${d.day})">Day ${d.day}</button>`).join('')}
+    </div>
+    <div class="plan-day-card">
+      <div class="tag-row">
+        ${(activeDay.recipe.dietTags||[]).map(t=>`<span class="tagpill ${dietTagClass(t)}">${escapeHtml(t)}</span>`).join('')}
+        ${activeDay.recipe.cuisine ? `<span class="tagpill cuisine">${escapeHtml(activeDay.recipe.cuisine)}</span>` : ''}
+      </div>
+      <h3 style="margin:10px 0 6px; font-size:19px;">${escapeHtml(activeDay.recipe.title||'')}</h3>
+      <p class="desc" style="font-size:13.5px; color:var(--ink-soft); margin:0 0 12px;">${escapeHtml(activeDay.recipe.description||'')}</p>
+      <div class="meta-row">
+        <span>⏱ ${escapeHtml(activeDay.recipe.prepTime||'—')} prep</span>
+        <span>🔥 ${escapeHtml(activeDay.recipe.cookTime||'—')} cook</span>
+        ${activeDay.recipe.nutrition && activeDay.recipe.nutrition.calories ? `<span>⚡ ${escapeHtml(String(activeDay.recipe.nutrition.calories))} kcal</span>` : ''}
+      </div>
+      <button class="btn btn-outline btn-sm" style="margin-top:14px; width:100%;" onclick="viewMealPlanRecipe('${activeDay.recipe.id}')">View full recipe</button>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn btn-primary btn-sm" style="flex:1;" onclick="downloadMealPlanList()">⬇ Download combined shopping list</button>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="width:100%; margin-top:8px;" onclick="clearMealPlan()">Start a new plan</button>
+  `;
+}
+
+function viewMealPlanRecipe(id){
+  closeMealPlanModal();
+  openRecipeModal(id);
+}
+
+async function generateMealPlan(){
+  APP.mealPlan = 'loading';
+  renderMealPlanModal();
+
+  try{
+    const dietLabel = $('#dietGrid .diet-opt.active').textContent.trim();
+    const cuisineLabel = $('#cuisineGrid .diet-opt.active').textContent.trim();
+    const n = APP.mealPlanDaysChoice;
+    const prompt = `Available ingredients: ${ingredientsForPrompt().join(', ')}.
+Dietary preference: ${dietLabel}.
+${cuisineLabel !== 'Any' ? `Cuisine preference: lean toward ${cuisineLabel} cuisine.` : ''}
+${APP.exclusions.length ? `Strictly avoid these ingredients entirely (allergies/dislikes): ${APP.exclusions.join(', ')}.` : ''}
+
+Create a ${n}-day meal plan, one main recipe per day, using these ingredients across the days sensibly (vary the dishes rather than repeating the same one). Each day's recipe needs precise ingredient quantities, clear numbered preparation steps, and a rough per-serving nutrition estimate. ${RECIPE_SCHEMA_NOTE}
+
+Respond with ONLY valid JSON in exactly this shape, no markdown fences, no commentary:
+{ "days": [ { "day": 1, "recipe": ${RECIPE_SCHEMA_FIELDS} } ] }`;
+
+    const text = await callAI({
+      model: MODEL_TEXT,
+      maxTokens: 6500,
+      jsonMode: true,
+      system: 'You are an expert chef and meal-planning assistant. Always respond with strictly valid JSON only — no markdown code fences, no extra text before or after the JSON.',
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const parsed = extractJson(text);
+    const days = (parsed.days || []).map(d => ({ day: d.day, recipe: { ...d.recipe, id: makeId() } }));
+    if(days.length === 0) throw new Error('No plan returned');
+
+    APP.mealPlan = { days };
+    APP.mealPlanActiveTab = days[0].day;
+    renderMealPlanModal();
+  }catch(err){
+    APP.mealPlan = null;
+    handleApiError(err);
+    renderMealPlanModal();
+  }
+}
+
+function downloadMealPlanList(){
+  if(!APP.mealPlan || APP.mealPlan === 'loading') return;
+  const width = 34;
+  const lines = [];
+  lines.push('='.repeat(width));
+  lines.push('       MEAL PLAN SHOPPING LIST');
+  lines.push('='.repeat(width));
+  APP.mealPlan.days.forEach(d => {
+    lines.push('');
+    lines.push(`DAY ${d.day} — ${(d.recipe.title||'').toUpperCase()}`);
+    lines.push('-'.repeat(width));
+    (d.recipe.ingredients||[]).forEach(i => {
+      lines.push(`[ ] ${i.item||''}  ${i.quantity||''}`.trim());
+    });
+  });
+  lines.push('');
+  lines.push('='.repeat(width));
+  lines.push('Generated by Simmer — AI Recipe Generator');
+  lines.push(new Date().toLocaleDateString());
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `simmer-meal-plan-${APP.mealPlan.days.length}day.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Meal plan shopping list downloaded');
 }
 
 /* ============================================================
